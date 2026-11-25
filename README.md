@@ -99,7 +99,7 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 
 | 步驟 | 做什麼 | 看哪一節 |
 |------|--------|----------|
-| 1 | 準備原始碼版 UE、設定 BuildId、放入插件 | [環境需求](#環境需求)、[安裝步驟](#安裝步驟) |
+| 1 | 準備原始碼版 UE、設定 BuildId、放入插件、下載 markerless 相依檔 | [環境需求](#環境需求)、[安裝步驟](#安裝步驟) |
 | 2 | 在玩家 Pawn 加上 **MultiVR Component** | [快速開始](#快速開始) |
 | 3 | 在 Pawn 的 BeginPlay 讀取命令列參數、連遊戲伺服器、呼叫 `StartSystem` | [Lobby → Content 流程](#4-lobby--content-流程多人遊戲) |
 | 4 | 綁定事件：定位完成、附近玩家、關閉遊戲、緊急警報 | [事件](#事件event-dispatcher) |
@@ -117,31 +117,49 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 |------|------|
 | Unreal Engine | **原始碼版** UE 5.3.2 或 UE 5.8.4（不支援 Epic Launcher 版）。交付包分版本提供，請使用與引擎相同版本的包 |
 | 引擎 BuildId | 引擎的 `Engine\Build\Build.version` 必須加上交付包指定的 BuildId（見[安裝步驟](#安裝步驟)） |
-| 專案 | C++ 專案；打包 content server 需要 Server Target（`<專案>Server.Target.cs`） |
+| 專案 | **C++ 專案**（純藍圖專案先在編輯器 `Tools → New C++ Class` 隨便加一個 class 就會變成 C++ 專案）；打包 content server 需要 Server Target（`<專案>Server.Target.cs`，見安裝步驟 4） |
 | 目標平台 | Android（arm64-v8a）為主，Win64 可在編輯器內開發；content server 只支援 Win64 |
 | HMD | Meta Quest 3 / 3S / Quest Pro；HTC 裝置走 LBS 模式（`IsHTCLBS`） |
-| 相依插件 | `MetaXR (OculusXR)`、`AndroidPermission`、`WebSockets`、`EyeTracker` |
+| 相依插件 | **Meta XR 插件（`OculusXR`）必須放在專案的 `Plugins` 並啟用**（與引擎版本對應的版本）；`AndroidPermission` 由 MultiVR 自動啟用 |
 | Android | SDK、JDK 17；NDK 版本依引擎：**UE 5.3.2 用 r25b、UE 5.8.4 用 r27c** |
 
 ---
 
 ## 安裝步驟
 
-> 交付包的 `MultiVR` 資料夾內附 `README.md` 與 `AGENT_INSTALL.md`，內含該版本**實際的 BuildId**，請以交付包內的文件為準。
+> **版本對應的 branch**：`main` = UE 5.8.4、`5.3.2` = UE 5.3.2。請 checkout 與你引擎相同版本的 branch。
+>
+> 外掛在 repo 的 `Plugins/MultiVR`，裡面附的 `README.md` 與 `AGENT_INSTALL.md` 寫有該版本**實際的 BuildId**，請以那份為準。
 
 1. **設定引擎 BuildId**
    打開 `<引擎>\Engine\Build\Build.version`，在最後一個欄位後面加上一行（前一行要補逗號）：
 
    ```json
+   {
+   	"MajorVersion": 5,
+   	...（原本的欄位不動）...
+   	"BranchName": "++UE5+Release-5.x",
    	"BuildId": "<交付包 README 內的 BuildId>"
+   }
    ```
 
    每台要開這個專案的電腦都要做。原始碼版引擎每台電腦編譯出的 BuildId 都不同，外掛的編輯器 DLL 只能在 BuildId 相同的引擎上載入；固定成交付包的值，就不需要外掛原始碼。
 
 2. **放入外掛**
-   把整個 `MultiVR` 資料夾複製到 `<專案>\Plugins\MultiVR`。已有舊版時，先整個刪除再放入，不要混用新舊檔案。
+   把 repo 裡整個 `Plugins/MultiVR` 資料夾複製到 `<專案>\Plugins\MultiVR`。已有舊版時，先整個刪除再放入，不要混用新舊檔案。
 
-3. **修改 Target**
+3. **補上 markerless 相依檔（從 git 取得時必做）**
+   RTAB-Map / PCL / Boost 的標頭與函式庫太大（約 3.2 GB），**沒有放進 git**。外掛的預編譯檔是連同它們一起編的，**沒補上的話 Android 打包會在連結時缺符號失敗**。
+
+   1. 下載 Include 包：https://drive.google.com/file/d/1QTqyZEEMALUr-rLC0KLCdpFL1AuSgw1J/view?usp=sharing
+      解壓到 `<專案>\Plugins\MultiVR\Include\Android\include`
+   2. 下載 Library 包：https://drive.google.com/file/d/1sBz7Is1bqi5pGB7Mha1HX-KHheI1jMv8/view?usp=sharing
+      解壓到 `<專案>\Plugins\MultiVR\Library\Android\libs` 並覆蓋
+
+   完成後應該有 `Include\Android\include\rtabmap`、`pcl`、`boost` 三個資料夾，以及 `Library\Android\libs\arm64-v8a\librtabmap_core.a`。
+   （若拿到的是系統方直接給的完整 zip，裡面已經包含，這步可略過。）
+
+4. **修改 Target**
    在專案的 Game Target（`<專案>.Target.cs`）與 Server Target（`<專案>Server.Target.cs`）建構式內都加上：
 
    ```csharp
@@ -150,9 +168,20 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 
    沒加的話，打包 APK 或 content server 時會出現 `Missing precompiled manifest`。
 
-4. **在 `.uproject` 啟用插件**：`MultiVR`，以及 `OculusXR`（Passthrough / Eye / Face Tracking 需要）。
+   專案還沒有 Server Target 時，複製 `Source\<專案>.Target.cs` 成 `Source\<專案>Server.Target.cs`，把裡面的 class 名稱改成 `<專案>ServerTarget`、`Type = TargetType.Game` 改成 `Type = TargetType.Server`。
 
-5. **建置一次編輯器**
+5. **在 `.uproject` 啟用插件**（`MultiVR` 與 `OculusXR` 都**必須**啟用：外掛是連同 Meta XR 一起預編譯的，沒啟用 OculusXR 會建置失敗）：
+
+   ```json
+   "Plugins": [
+   	{ "Name": "MultiVR", "Enabled": true },
+   	{ "Name": "OculusXR", "Enabled": true }
+   ]
+   ```
+
+   Meta XR 插件本身要另外放進 `<專案>\Plugins\MetaXR`（使用與引擎版本對應的版本）。
+
+6. **建置一次編輯器**
    依序執行（先引擎、再專案；只建專案的話，引擎的 BuildId 不會更新）：
 
    ```
@@ -162,14 +191,14 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 
    第一行通常只會更新清單檔，約數十秒。完成後 `<引擎>\Engine\Binaries\Win64\UnrealEditor.modules` 的 BuildId 應該等於交付包的值。
 
-6. **開啟專案**，確認沒有出現「模組遺失或由不同引擎版本建置」的對話框。
+7. **開啟專案**，確認沒有出現「模組遺失或由不同引擎版本建置」的對話框。
 
 ### 不要做的事
 
 - **不要刪除 `Plugins\MultiVR\Intermediate`**：裡面是 Android 與 Server 的預編譯物件檔，刪了就無法打包。清理專案時只刪專案自己的 `Intermediate`、`Binaries`。
 - 不要對 MultiVR 執行 Rebuild，也不要在出現「是否重新編譯 MultiVR」時按「是」：交付包沒有原始碼，重新編譯一定失敗。
 - 不要手動修改 `Plugins\MultiVR\Binaries\Win64\UnrealEditor.modules`。
-- 不需要另外下載或更新 `Include` / `Library`：交付包已包含與預編譯檔相符的版本，自行替換可能造成連結錯誤或閃退。
+- 不要用其他來源的 OpenCV / RTAB-Map / PCL / Boost 替換 `Include` / `Library`：只用 repo 內附的檔案與上面兩個下載包，版本不符會連結錯誤或閃退。
 
 ---
 
@@ -182,7 +211,7 @@ Plugins/MultiVR/
 ├─ Binaries/Win64/                編輯器 DLL（預編譯）
 ├─ Intermediate/Build/            Android / Win64 / Server 預編譯物件檔（不可刪）
 ├─ Content/                       Curve、Materials、EUW（編輯器工具 Widget、Galaxy 素材庫）
-├─ Include/ , Library/            第三方標頭檔與靜態庫（OpenCV / Aruco / RTAB-Map / PCL / Boost，已包含在交付包內）
+├─ Include/ , Library/            第三方標頭檔與靜態庫（OpenCV / Aruco 在 repo 內；RTAB-Map / PCL / Boost 要另外下載，見安裝步驟 3）
 └─ Source/
    ├─ MultiVR/Public/             MultiVRGIS.h / MultiVRComponent.h / MultiVRDatas.h / MultiVRPluginSettings.h
    ├─ MultiVR/Android/            MultiVRManifest_APL.xml(權限、WebRTC aar、Java 注入)
@@ -222,8 +251,10 @@ UMultiVRGIS (GameInstanceSubsystem)          UMultiVRComponent (掛在 VR Pawn �
 
 ### 1. 在 VR Pawn 上加入元件
 
-於 VR Pawn（含 `UCameraComponent` 的 Pawn）加入 **MultiVR Component**。
-元件會在第一次定位成功時自動抓取 Camera 並把 Pawn 設為 Aruco 中心 Actor。
+打開玩家的 VR Pawn 藍圖（含 Camera 元件的 Pawn，例如 VR Template 的 `VRPawn`）→ 左上 **Components** 面板按 **Add** → 搜尋「MultiVR」→ 選 **MultiVR Component** → Compile、Save。
+不需要設定任何屬性：元件會在第一次定位成功時自動抓取 Camera，並把 Pawn 設為 Aruco 中心 Actor。
+
+> 確認這個 Pawn 就是遊戲實際會生成的 Pawn（GameMode 的 `Default Pawn Class`，或關卡中設為 `Auto Possess Player = Player 0` 的 Pawn）。
 
 ### 2. 啟動系統
 
@@ -238,15 +269,19 @@ StartSystem(
     RoomID    = "1234",            // 房間代號（-roomId）
     IsHTCLBS  = false,             // Quest 一律 false；true 只用於 HTC LBS 裝置
     SlamType  = ARUCO,             // 用 marker 定位填 ARUCO（MARKLESS / MIX 為無 marker 定位）
-    HMDType   = "quest3s"          // 頭盔型號，用來向後台取對應的相機標定檔
+    HMDType   = "quest3s"          // 目前不使用（標定檔固定以 quest3s 向後台索取），填 "quest3s" 即可
 )
 ```
 
 呼叫之後插件會自動做完以下所有事，不需要另外寫程式：連上後台 → 下載相機標定檔 → 下載地圖 → 打開相機開始定位 → 首次定位完成後發出 `OnSystemReady`。
 
+> **定位只能在頭盔上測試**：在編輯器（PIE）或 Win64 執行時，插件仍會連後台、下載地圖，但不會開相機，所以**不會有 `OnSystemReady`**。編輯器裡適合測連線與畫面，定位請打包 APK 上頭盔測。
+
 ### 3. 綁定事件
 
-在 Content 關卡（玩家 Pawn 的 BeginPlay）至少綁定以下事件：
+在玩家 Pawn 的 BeginPlay、**呼叫 `StartSystem` 之前**綁定。藍圖做法：`Get MultiVRGIS` 拉出線 → 搜尋 **Bind Event to On System Ready** → 從節點左邊紅色的 `Event` 腳位拉出 → `Add Custom Event`，在這個 Custom Event 後面接你要做的事。其他事件做法相同。
+
+至少綁定以下事件：
 
 | 事件 | 什麼時候發生 | 你通常要做什麼 |
 |------|--------------|----------------|
@@ -299,7 +334,7 @@ StartSystem(
 
    > **不經過 Lobby 測試**：content server 跑起來後，直接用上面的 adb 指令（換成自己的 package、IP、房間、地圖）就能模擬 Lobby 啟動遊戲。`-S` 會先關掉已在執行的 App 再重開。
 
-2. **Content 啟動後由專案自行讀取這些參數**（插件不會自動解析）：Blueprint 用 `Get Command Line` → `Parse Command Line` 拆成 Key/Value，再用 Key 找值（C++ 可用 `FParse::Value`）。沒帶參數時用預設值，方便單機測試。
+2. **Content 啟動後由專案自行讀取這些參數**（插件不會自動解析）：Blueprint 用 `Get Command Line` → `Parse Command Line` 拆成 Key/Value（輸出的 `Params` Map），再用 `Find` 以 Key 找值；**Key 不含減號**，例如找 `serverip` 而不是 `-serverip`（C++ 可用 `FParse::Value(FCommandLine::Get(), TEXT("serverip="), Out)`）。沒帶參數時用預設值，方便單機測試。
 3. **Pawn 的 BeginPlay**（每次進關卡都會跑）：先綁定 MultiVR 事件（`OnSystemReady`、`WSMessage_CloseGame` 等），再依情況二選一：
    - **有帶 `-serverip`，而且目前是單機（`Is Standalone`）** → 執行 Console Command `open <serverip>`，連進 content server。
    - **否則，如果插件還沒連線（`IsConnected()` = false）** → 呼叫 `StartSystem`：
@@ -327,7 +362,7 @@ StartSystem(
 
 - 啟動範例：`exampleServer.exe /Game/<地圖> -port=7777 -ip=<本機區網 IP> -wsserverip=<後台 IP> -wsport=5000 -roomId=<房間> -headsetIds=<逗號分隔>`。地圖要放第一個參數，否則會載入空的預設地圖。
 - **`-ip` 不能空**：後台收到空 ip 會忽略這台 content server，房間綁不上，開始 / 暫停都沒反應。
-- GameMode 的 BeginPlay（只在 Dedicated Server 上執行）：綁定事件後呼叫 `StartConnectWebSocket`（IP / Port / RoomID / HeadsetIds 由命令列帶入，`ClientID` 留空）。插件以 `game_backend` 身分連線，並把 ip / port 回報給後台。
+- GameMode 的 BeginPlay（先用 `Is Dedicated Server` 接 Branch，只有 true 才往下做，避免頭盔或編輯器單機時也跑）：綁定事件後呼叫 `StartConnectWebSocket`（IP / Port / RoomID / HeadsetIds 由命令列帶入，`ClientID` 留空）。插件以 `game_backend` 身分連線，並把 ip / port 回報給後台。
 - **房間要先建立，content server 才能啟動**。
 - 用 `WSSend_Progress` 回報載入進度、`WSSend_GameStatus` 回報遊戲狀態。
 - 綁定 `OnWebAction_StartGame` / `OnWebAction_PauseGame` 接收後台的開始 / 暫停。
@@ -599,6 +634,26 @@ UMultiVRComponent 修正 Pawn（首次 Snap，之後平滑 Lerp）
 
 ## Android 打包注意事項
 
+### 打包步驟
+
+**頭盔 APK**
+
+1. `Edit → Project Settings → Platforms → Android`：
+   - 按 **Configure Now** 接受 SDK 授權；
+   - 填 **Android Package Name**（例如 `com.YourCompany.example`）。**這個名稱要告訴系統方**，後台要用它讓 Lobby 啟動你的遊戲（`connectData.packageName`）；
+   - Package for Meta Quest devices 勾選；Build 只勾 arm64。
+2. `Edit → Project Settings → Platforms → Android SDK`：填 SDK、NDK（版本見下方）、JDK 17 路徑。
+3. Meta XR 建議設定可用 Meta XR 插件的 **Project Setup Tool**（工具列 Meta XR 選單）一鍵套用。
+4. 工具列 `Platforms → Android → Package Project`，選輸出資料夾。完成後用資料夾內的 `Install_*.bat` 或 `adb install -r <apk>` 裝到頭盔。
+
+**Content Server（Win64）**
+
+1. 確認已有 `<專案>Server.Target.cs`（安裝步驟 4），並跑過一次步驟 6 的編輯器建置。
+2. 工具列 `Platforms → Windows`：**Build Target** 選 `<專案>Server` → `Package Project`。
+3. 輸出資料夾裡的 `<專案>Server.exe` 交給系統方，由後台啟動（啟動參數見 [Content Server 端](#4-lobby--content-流程多人遊戲)）。
+
+### 插件自動處理的部分
+
 `MultiVRManifest_APL.xml` 會自動注入：
 
 - 權限：`CAMERA`、`horizonos.permission.HEADSET_CAMERA`、`RECORD_AUDIO`、`MANAGE_EXTERNAL_STORAGE`
@@ -636,13 +691,16 @@ UMultiVRComponent 修正 Pawn（首次 Snap，之後平滑 Lerp）
 
 | 症狀 | 可能原因 / 處理 |
 |------|-----------------|
-| 開專案時說 MultiVR 模組遺失、要求重新編譯 | 引擎 BuildId 不是交付包指定的值。檢查安裝步驟 1，再做一次步驟 5（兩行都要跑） |
-| 打包時 `Missing precompiled manifest` | 安裝步驟 3 沒做，或 `Plugins\MultiVR\Intermediate` 被刪除 |
+| 開專案時說 MultiVR 模組遺失、要求重新編譯 | 引擎 BuildId 不是交付包指定的值。檢查安裝步驟 1，再做一次步驟 6（兩行都要跑） |
+| 打包時 `Missing precompiled manifest` | 安裝步驟 4 沒做，或 `Plugins\MultiVR\Intermediate` 被刪除 |
 | Server 連結時 `LNK2011` / `LNK1120` | 使用了舊版交付包，請改用最新版 |
 | 引擎版本與交付包不符 | 每個交付包只能用於對應的引擎版本（5.3.2 / 5.8.4），請索取對應版本 |
 | 裝置一啟動就閃退，log 有 `UnsatisfiedLinkError: libomp.so` | `libomp.so` 未打包，確認 `Plugins\MultiVR\Library` 完整並重新打包 |
 | `calibration not exist` / `aruco map not exist` | 後台沒有該 `deviceType` 的標定檔或該 `MapName` 的地圖，向後台確認代號 |
 | 開場定位很久才完成 | 看 `[first-init]` log：「無 marker」或「地板」多 → 請正對牆面 marker；「未站定」多 → 請站穩；「雙眼不一致」多 → 靠近 marker 一點再試 |
 | 走動時位置校正變慢 | `Slam Interval` 設太大，調小或設回 0 |
+| 編輯器裡按 Play 一直等不到 `OnSystemReady` | 正常：相機只在頭盔上開，定位要打包上頭盔測（見[啟動系統](#2-啟動系統)） |
+| 建置時找不到 `OculusXR` / `MultiVRMetaModule` 相關符號 | 專案沒放入或沒啟用 Meta XR 插件（安裝步驟 5） |
+| 頭盔 `open` content server 後連不上（`contentServer = failed`） | 執行 server 的電腦防火牆要開放 UDP 7777；確認 `-serverip` 是電腦的區網 IP |
 | 收不到 `proximity_update` | 確認 UDP 7000 未被防火牆阻擋，且首次定位已完成 |
 | HTC 裝置定位無效 | HTC 走 LBS 模式，`StartSystem` 的 `IsHTCLBS` 必須為 `true`，此模式不執行 Aruco SLAM |
