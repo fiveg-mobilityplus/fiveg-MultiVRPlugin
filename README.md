@@ -3,7 +3,7 @@
 Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** 所需的定位、連線與 XR 週邊整合。
 針對 Meta Quest 3 / 3S / Pro（Android arm64）與 Win64 編輯器開發環境設計。
 
-本插件以 **預編譯（不含原始碼）** 形式交付，可在編輯器中使用、打包 Android APK，也可建置 Win64 content server。
+本 repo 提供的是**已經建置好的插件**：放進你的專案、照[安裝步驟](#安裝步驟)設定後，就能在編輯器使用、打包 Android APK 與 Win64 content server，不需要自己編譯插件。
 
 > **第一次接觸本系統？** 先讀 [先認識這個系統](#先認識這個系統)，10 分鐘內就能知道整套系統怎麼運作、你要做哪些事。後面的章節是安裝步驟與技術參考，需要時再查。
 
@@ -25,7 +25,6 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 - [環境需求](#環境需求)
 - [安裝步驟](#安裝步驟)
 - [目錄結構](#目錄結構)
-- [模組架構](#模組架構)
 - [快速開始](#快速開始)
 - [API 參考](#api-參考)
 - [事件（Event Dispatcher）](#事件event-dispatcher)
@@ -143,13 +142,13 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
    }
    ```
 
-   每台要開這個專案的電腦都要做。原始碼版引擎每台電腦編譯出的 BuildId 都不同，外掛的編輯器 DLL 只能在 BuildId 相同的引擎上載入；固定成交付包的值，就不需要外掛原始碼。
+   每台要開這個專案的電腦都要做。插件只能在 BuildId 相同的引擎上載入，沒設定的話開專案會出現「模組遺失」並要求重新編譯。
 
 2. **放入外掛**
    把 repo 裡整個 `Plugins/MultiVR` 資料夾複製到 `<專案>\Plugins\MultiVR`。已有舊版時，先整個刪除再放入，不要混用新舊檔案。
 
 3. **補上 markerless 相依檔（從 git 取得時必做）**
-   RTAB-Map / PCL / Boost 的標頭與函式庫太大（約 3.2 GB），**沒有放進 git**。外掛的預編譯檔是連同它們一起編的，**沒補上的話 Android 打包會在連結時缺符號失敗**。
+   RTAB-Map / PCL / Boost 的標頭與函式庫太大（約 3.2 GB），**沒有放進 git**，要另外下載。**沒補上的話 Android 打包會失敗**。
 
    1. 下載 Include 包：https://drive.google.com/file/d/1QTqyZEEMALUr-rLC0KLCdpFL1AuSgw1J/view?usp=sharing
       解壓到 `<專案>\Plugins\MultiVR\Include\Android\include`
@@ -170,7 +169,7 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 
    專案還沒有 Server Target 時，複製 `Source\<專案>.Target.cs` 成 `Source\<專案>Server.Target.cs`，把裡面的 class 名稱改成 `<專案>ServerTarget`、`Type = TargetType.Game` 改成 `Type = TargetType.Server`。
 
-5. **在 `.uproject` 啟用插件**（`MultiVR` 與 `OculusXR` 都**必須**啟用：外掛是連同 Meta XR 一起預編譯的，沒啟用 OculusXR 會建置失敗）：
+5. **在 `.uproject` 啟用插件**（`MultiVR` 與 `OculusXR` 都**必須**啟用，沒啟用 OculusXR 會建置失敗）：
 
    ```json
    "Plugins": [
@@ -195,8 +194,8 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 
 ### 不要做的事
 
-- **不要刪除 `Plugins\MultiVR\Intermediate`**：裡面是 Android 與 Server 的預編譯物件檔，刪了就無法打包。清理專案時只刪專案自己的 `Intermediate`、`Binaries`。
-- 不要對 MultiVR 執行 Rebuild，也不要在出現「是否重新編譯 MultiVR」時按「是」：交付包沒有原始碼，重新編譯一定失敗。
+- **不要刪除 `Plugins\MultiVR\Intermediate` 和 `Plugins\MultiVR\Binaries`**：插件打包要用到裡面的檔案，刪了就無法打包。清理專案時只刪專案自己的 `Intermediate`、`Binaries`。
+- 不要對 MultiVR 執行 Rebuild，也不要在出現「是否重新編譯 MultiVR」時按「是」：插件是建置好的，重新編譯一定失敗。出現這個對話框代表 BuildId 沒設對，回頭檢查步驟 1 和步驟 6。
 - 不要手動修改 `Plugins\MultiVR\Binaries\Win64\UnrealEditor.modules`。
 - 不要用其他來源的 OpenCV / RTAB-Map / PCL / Boost 替換 `Include` / `Library`：只用 repo 內附的檔案與上面兩個下載包，版本不符會連結錯誤或閃退。
 
@@ -208,42 +207,20 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 Plugins/MultiVR/
 ├─ MultiVR.uplugin
 ├─ README.md / AGENT_INSTALL.md   本版本的安裝說明（含 BuildId）
-├─ Binaries/Win64/                編輯器 DLL（預編譯）
-├─ Intermediate/Build/            Android / Win64 / Server 預編譯物件檔（不可刪）
-├─ Content/                       Curve、Materials、EUW（編輯器工具 Widget、Galaxy 素材庫）
-├─ Include/ , Library/            第三方標頭檔與靜態庫（OpenCV / Aruco 在 repo 內；RTAB-Map / PCL / Boost 要另外下載，見安裝步驟 3）
-└─ Source/
-   ├─ MultiVR/Public/             MultiVRGIS.h / MultiVRComponent.h / MultiVRDatas.h / MultiVRPluginSettings.h
-   ├─ MultiVR/Android/            MultiVRManifest_APL.xml(權限、WebRTC aar、Java 注入)
-   ├─ MultiVR/Java/com/multivr/   相機橋接(CameraBridge / CameraViewModel)
-   ├─ ThirdParty/Public/          SLAM 介面標頭
-   ├─ PlatformUtility/Meta/       MetaXR 膠水層(含原始碼,由引擎編譯)
-   └─ MultiVREditor/Public/       編輯器模組標頭
+├─ Binaries/ , Intermediate/      建置好的插件檔案（不可刪、不可改）
+├─ Content/                       插件附帶的素材與編輯器工具（Galaxy 素材庫）
+├─ Include/ , Library/            插件需要的函式庫（RTAB-Map / PCL / Boost 要另外下載，見安裝步驟 3）
+└─ Source/                        給專案引用的標頭檔（不需要修改）
 ```
 
-`MultiVR`、`ThirdParty`、`MultiVREditor` 三個模組不含 `Private` 原始碼。
+整個資料夾照原樣放進專案即可，裡面的檔案都不需要手動修改。
 
----
+你在藍圖裡會用到的只有兩個東西：
 
-## 模組架構
-
-| 模組 | 型別 | 平台 | 說明 |
-|------|------|------|------|
-| `MultiVR` | Runtime（預編譯） | Android / Win64 | 核心：`UMultiVRGIS`（GameInstanceSubsystem）、`UMultiVRComponent`（SceneComponent） |
-| `ThirdParty` | Runtime（預編譯） | Android / Win64 | SLAM 演算法與 OpenCV / Aruco / RTAB-Map / PCL / Boost 靜態庫連結；Android 額外載入 `libomp.so` |
-| `MultiVRMetaModule` | Runtime（含原始碼） | 需 OculusXR | Passthrough 透明度、Eye / Face Tracking 封裝 |
-| `MultiVREditor` | Editor（預編譯） | — | Galaxy 素材庫（登入、分類、下載、FBX 匯入）、編輯器通知、Http 封裝 |
-
-執行期核心關係：
-
-```
-UMultiVRGIS (GameInstanceSubsystem)          UMultiVRComponent (掛在 VR Pawn 上)
- ├─ WebSocket / UDP 連線與收發               ├─ 訂閱定位結果 → 修正 Pawn 位置 / 旋轉
- ├─ 左右眼相機影像 → SLAM → 定位結果廣播      ├─ 每 0.05s 送出頭盔 transform
- ├─ Aruco 地圖參數（marker 尺寸、柱子、危險區） ├─ Recenter 偵測與重新定位、柱子重定位閃爍
- ├─ 效能設定（ApplyPerfSettings）             └─ 自動掛載 Meta 三個元件
- └─ Meta Passthrough 透明度 / Eye / Face
-```
+| 名稱 | 在哪裡用 | 負責 |
+|------|----------|------|
+| **Multi VRGIS** | 任何藍圖搜尋「Multi VRGIS」取得 | 連線後台、定位、收發訊息、效能設定，所有函式與事件都在這裡 |
+| **MultiVR Component** | 加在玩家 Pawn 上 | 把定位結果套用到玩家位置，並自動處理靠牆透視、眼動 / 表情追蹤 |
 
 ---
 
@@ -376,7 +353,7 @@ StartSystem(
 
 ## API 參考
 
-### UMultiVRGIS（GameInstanceSubsystem）
+### Multi VRGIS
 
 #### 連線
 
@@ -429,7 +406,7 @@ StartSystem(
 `GetStringValue`、`GetNumberValue`、`GetBoolValue`、`GetJsonStringValue`、`GetJsonStringArrayValue`、`GetStringArrayValue`、`GetNumberArrayValue`、`GetFloatArrayValue`。
 可直接在 Blueprint 解析 `WSOnMessage` 收到的原始字串。
 
-### UMultiVRComponent（SceneComponent）
+### MultiVR Component
 
 | 成員 | 說明 |
 |------|------|
@@ -438,8 +415,6 @@ StartSystem(
 | `OnRelocalizeFlash`（BlueprintImplementableEvent） | 場景「直接拉過去」時觸發，接閃爍過場 Blueprint |
 | `SetAutoZonePassthrough(bEnable)` | 開關「靠近危險區自動開透視」（預設開）。關閉時透明度回到 `SetMetaPassthroughOpacity` 設定的值 |
 | `SetMetaPassthroughOpacity(Opacity)` | 手動設定 Passthrough 基礎透明度（0 = 關閉透視、1 = 全透視） |
-
-內部狀態機 `ESlamState`：`Init`（首次定位，直接 Snap）→ `Waiting`（跨一幀）→ `Lerping`（持續平滑修正）。
 
 ---
 
@@ -546,23 +521,11 @@ StartSystem(
 
 ## SLAM 定位流程
 
-```
-Java 相機橋接取左右眼影像（成對）
-      ↓
-SLAM：左右眼各自偵測 Aruco → 雙眼融合求相機位置
-      ↓ JSON { pos, orient, pillar, yawPair … }
-首次定位閘門 / 離群過濾
-      ↓
-UMultiVRComponent 修正 Pawn（首次 Snap，之後平滑 Lerp）
-```
+定位全部由插件自動處理，專案不需要寫任何定位程式。本節說明玩家實際會感受到的行為，方便測試與排查。
 
-### 定位演算法重點
-
-- **雙眼定位**：左右眼各自使用後台提供的相機內參（`get_calibration` 的左右眼標定），並套用相機到頭盔的外參，算出的是頭盔（眼睛）位置而不是相機位置。
-- **單眼遮擋互補**：一眼被遮住或看不到 marker 時，自動改用另一眼的結果。
-- **多 marker 聯合求解**：同時看到多顆 marker 時一起求解；只看到一顆時另外處理單顆 marker 的角度歧義，減少朝向翻轉。
-- **延遲補償**：SLAM 計算需要時間，校正時會回看「拍照當下」的頭部位置再套用修正，走動中也不會被拉回舊位置。
-- **原地死區**：玩家站著不動時忽略微小修正，避免畫面細微抖動；頭部移動或修正量變大時才套用（高度差也會解除死區）。
+- 頭盔左右眼相機看到 marker 就會校正位置；一眼被遮住時用另一眼。
+- 第一次定位直接把場景對齊過去，之後的校正都是平滑移動，不會突然跳動。
+- 玩家站著不動時會忽略很小的誤差，避免畫面細微抖動。
 
 ### 地圖決定的參數
 
@@ -620,7 +583,7 @@ UMultiVRComponent 修正 Pawn（首次 Snap，之後平滑 Lerp）
 
 ## Meta XR 功能
 
-首次定位完成時 `UMultiVRComponent` 會自動掛載三個元件：
+首次定位完成時，**MultiVR Component** 會自動在 Pawn 上加入以下三個元件，不需要手動加：
 
 | 元件 | 功能 |
 |------|------|
@@ -654,21 +617,17 @@ UMultiVRComponent 修正 Pawn（首次 Snap，之後平滑 Lerp）
 
 ### 插件自動處理的部分
 
-`MultiVRManifest_APL.xml` 會自動注入：
+打包時插件會自動加入以下設定，**不需要手動加**：
 
-- 權限：`CAMERA`、`horizonos.permission.HEADSET_CAMERA`、`RECORD_AUDIO`、`MANAGE_EXTERNAL_STORAGE`
-- 功能宣告：`android.hardware.camera2.full`
-- 相依：`google-webrtc-1.0.32006.aar`（複製到 build/libs 並加入 gradle `implementation`）
-- Java 端相機橋接（`com.multivr.CameraBridge` 等）
-
-`ThirdParty_APL.xml` 於啟動時載入 `libomp.so`（OpenMP，未載入會 `UnsatisfiedLinkError` 閃退）。
+- Android 權限：`CAMERA`、`horizonos.permission.HEADSET_CAMERA`、`RECORD_AUDIO`、`MANAGE_EXTERNAL_STORAGE`
+- 頭盔相機存取與 WebRTC 串流需要的函式庫
 
 其他：
 
 - 只支援 **arm64-v8a**，Texture 格式建議 ASTC。
 - NDK 版本依引擎：UE 5.3.2 用 r25b、UE 5.8.4 用 r27c。
 - 執行期會先請求 Android 權限，權限未過前連線會先擱置，取得後自動續連。
-- 標定檔與地圖檔存放於 `FPaths::ProjectPersistentDownloadDir()`（`metamap-cam.yml` / `metamap-cam-right.yml` / `metamap.yml`）。
+- 標定檔與地圖檔每次啟動時由插件自動從後台下載，不需要放進專案。
 - 若用 `-CookAll` 打包，可在 `DefaultGame.ini` 的 `[/Script/UnrealEd.ProjectPackagingSettings]` 加入 `+DirectoriesToNeverCook=(Path="/MultiVR/EUW")`，排除編輯器工具 Widget。
 
 ---
