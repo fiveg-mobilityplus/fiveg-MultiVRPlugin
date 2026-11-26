@@ -1,6 +1,8 @@
 # MultiVR Plugin
 
-MultiVR Plugin 是為**大空間多人 VR（Location-Based VR）**設計的 Unreal Engine 5 預建插件。插件將虛擬場景對齊實體場地，連接遊戲與場館後台，並整合頭盔的透視與追蹤功能。頭盔端支援 Meta Quest 3、Quest 3S 與 Quest Pro（Android arm64），編輯器與遊戲伺服器使用 Win64。
+**FreeRoam Studio** 是 Moonshine FreeRoam 多人自由走動式 VR 平台中，負責內容與開發整合的模組。**MultiVR Plugin 是 FreeRoam Studio 在 Unreal Engine 5 上的核心插件**，讓開發者能將 UE 遊戲接入場館後台，把虛擬場景對齊實體場地，並取得同場玩家的位置。[Moonshine FreeRoam 平台介紹](https://freeroam.moonshine.tw/zh-tw/)
+
+MultiVR 以預建插件交付，整合頭盔的透視與追蹤功能。頭盔端支援 Meta Quest 3、Quest 3S 與 Quest Pro（Android arm64），編輯器與遊戲伺服器使用 Win64。
 
 ## 主要能力
 
@@ -12,7 +14,7 @@ MultiVR Plugin 是為**大空間多人 VR（Location-Based VR）**設計的 Unre
 | Meta XR 整合 | 玩家靠近場地牆面或柱子時自動調整透視透明度，並可在支援的裝置上取得眼動與臉部追蹤資料。 |
 | 效能控制 | 開發者可透過 Blueprint 調整定位頻率、網路收送頻率與日誌等級。 |
 | WebRTC 串流信令 | 在頭盔與營運端之間交換建立畫面串流所需的 offer、answer 與 ICE candidate。 |
-| Galaxy 素材庫 | 開發者可在 UE 編輯器內瀏覽、下載模型，並匯入遊戲專案。 |
+| Galaxy 素材庫 | 開發者可從 UE 編輯器存取 FreeRoam Studio 的 Galaxy 素材庫，瀏覽、下載模型並匯入遊戲專案。 |
 
 開發者負責交付頭盔上的 Android 遊戲 APK（Content）與場地電腦上的 Win64 遊戲伺服器（Content Server）。操作頁面、場館後台（Local Server）與頭盔待機程式（Lobby）由系統方提供。
 
@@ -37,6 +39,8 @@ MultiVR Plugin 是為**大空間多人 VR（Location-Based VR）**設計的 Unre
 | ⑤ 交付與驗收 | [打包兩端](#android-打包注意事項)，再[走完一場遊戲](#場地驗收) | 兩台頭盔各自取得對方位置，結束後回到 Lobby |
 
 ## 先認識這個系統
+
+圖中藍色的兩個程式都透過 FreeRoam Studio 的 MultiVR Plugin 連到場館後台。頭盔上的 Content 負責定位與玩家互動，Win64 上的 Content Server 負責 UE 多人遊戲同步，並向後台回報遊戲狀態。
 
 ```mermaid
 flowchart TB
