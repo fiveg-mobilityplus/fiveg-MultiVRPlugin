@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="615" viewBox="0 0 1000 615" role="img" aria-labelledby="title desc">
+  <title id="title">頭盔端多人開場</title>
+  <desc id="desc">換關卡後重新執行 BeginPlay，尚未連後台時才呼叫 StartSystem。</desc>
+  <style>text{font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;font-size:20px;fill:#e3e8ee}.title{font-size:23px;font-weight:700}.heading{font-size:25px;font-weight:700;fill:#f4f8fc}.node{fill:#202c39;stroke:#81909f;stroke-width:2}.game{fill:#d9edff;stroke:#70b7fa;stroke-width:2}.dark{fill:#10243b}.group{fill:#172537;stroke:#455a72;stroke-width:1.5}.wire{fill:none;stroke:#a9c2d8;stroke-width:2.5;stroke-linejoin:round;marker-end:url(#arrow)}</style>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#a9c2d8"/></marker></defs>
+  <rect width="1000" height="615" rx="14" fill="#101b2a"/>
+  <g class="step">
+  <rect class="game" x="295" y="25" width="410" height="62" rx="10"/>
+  <text x="500" y="63" text-anchor="middle" class="dark title">Pawn · Event BeginPlay</text>
+  </g>
+  <path class="wire" d="M500 90V122"/>
+  <g class="step">
+  <rect class="node" x="295" y="126" width="410" height="62" rx="10"/>
+  <text x="500" y="164" text-anchor="middle" class="title">綁定事件、讀取命令列</text>
+  </g>
+  <path class="wire" d="M500 191V222"/>
+  <g class="step">
+  <rect class="node" x="264" y="226" width="472" height="62" rx="10"/>
+  <text x="500" y="264" text-anchor="middle" class="title">有 serverip 且 Is Standalone？</text>
+  </g>
+  <path class="wire" d="M390 290V322H202V352"/>
+  <text x="292" y="313" text-anchor="middle" class="">是</text>
+  <path class="wire" d="M610 290V322H755V352"/>
+  <text x="686" y="313" text-anchor="middle" class="">否</text>
+  <g class="step">
+  <rect class="game" x="24" y="356" width="360" height="82" rx="10"/>
+  <text x="204" y="391" text-anchor="middle" class="dark title">Execute Console Command</text>
+  <text x="204" y="417" text-anchor="middle" class="dark ">open 伺服器位址</text>
+  </g>
+  <path class="wire" d="M55 353V55H291"/>
+  <text x="80" y="139" text-anchor="start" class="">連線成功後</text>
+  <text x="80" y="166" text-anchor="start">切換關卡</text>
+  <text x="80" y="193" text-anchor="start">生成新 Pawn</text>
+  <g class="step">
+  <rect class="node" x="522" y="356" width="454" height="82" rx="10"/>
+  <text x="749" y="404" text-anchor="middle" class="title">MultiVRGIS 已連後台？</text>
+  </g>
+  <path class="wire" d="M660 441V476H483V506"/>
+  <text x="579" y="468" text-anchor="middle" class="">否</text>
+  <path class="wire" d="M810 441V476H861V506"/>
+  <text x="848" y="467" text-anchor="middle" class="">是</text>
+  <g class="step">
+  <rect class="game" x="273" y="510" width="420" height="78" rx="10"/>
+  <text x="483" y="543" text-anchor="middle" class="dark title">StartSystem</text>
+  <text x="483" y="569" text-anchor="middle" class="dark ">使用後台位址、房間與地圖</text>
+  </g>
+  <g class="step">
+  <rect class="node" x="751" y="510" width="220" height="78" rx="10"/>
+  <text x="861" y="556" text-anchor="middle" class="title">沿用後台連線</text>
+  </g>
+</svg>

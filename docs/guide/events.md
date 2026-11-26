@@ -56,12 +56,7 @@
 - 收到 `OnEmergencyClear` 時**一律清除所有警報 UI**，`AlertId` 可能是空字串（強制清除），不需判斷。
 - ack 已內建（收到 `emergency_alert` 立即回 `emergency_alert_ack`），content 不用處理。
 
-```
-[BeginPlay]
-   Get MultiVRGIS
-     ├─ Bind Event to On Emergency Alert → Switch on Level → 顯示對應 UI，Set Text ← Instruction
-     └─ Bind Event to On Emergency Clear → 移除所有警報 UI
-```
+[![緊急警報 UI 的事件接法。發出警報時依 Level 顯示 UI 與 Instruction，解除警報時清除所有警報 UI。](../images/multivr/emergency-ui.svg)](../images/multivr/emergency-ui.svg)
 
 ### GameServer（Dedicated Server）
 

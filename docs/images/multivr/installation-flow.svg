@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="670" viewBox="0 0 920 670" role="img" aria-labelledby="title desc">
+  <title id="title">插件安裝流程</title>
+  <desc id="desc">依序設定 BuildId、複製插件、核對相依檔、設定 Target、啟用插件、建置與驗證。</desc>
+  <style>text{font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;font-size:20px;fill:#e3e8ee}.title{font-size:23px;font-weight:700}.heading{font-size:25px;font-weight:700;fill:#f4f8fc}.node{fill:#202c39;stroke:#81909f;stroke-width:2}.game{fill:#d9edff;stroke:#70b7fa;stroke-width:2}.dark{fill:#10243b}.group{fill:#172537;stroke:#455a72;stroke-width:1.5}.wire{fill:none;stroke:#a9c2d8;stroke-width:2.5;stroke-linejoin:round;marker-end:url(#arrow)}</style>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#a9c2d8"/></marker></defs>
+  <rect width="920" height="670" rx="14" fill="#101b2a"/>
+  <g class="step">
+  <rect class="node" x="25" y="22" width="590" height="62" rx="10"/>
+  <text x="320" y="60" text-anchor="middle" class="title">① 核對 UE 版本，設定交付包的 BuildId</text>
+  </g>
+  <g class="step">
+  <rect class="node" x="25" y="108" width="590" height="62" rx="10"/>
+  <text x="320" y="146" text-anchor="middle" class="title">② 複製完整 Plugins/MultiVR</text>
+  </g>
+  <path class="wire" d="M320 86V104"/>
+  <g class="step">
+  <rect class="node" x="25" y="194" width="590" height="62" rx="10"/>
+  <text x="320" y="232" text-anchor="middle" class="title">③ Android 標頭與函式庫齊全？</text>
+  </g>
+  <path class="wire" d="M320 172V190"/>
+  <g class="step">
+  <rect class="node" x="25" y="325" width="590" height="62" rx="10"/>
+  <text x="320" y="363" text-anchor="middle" class="title">④ 設定 Game Target 與 Server Target</text>
+  </g>
+  <path class="wire" d="M320 258V321"/>
+  <g class="step">
+  <rect class="node" x="25" y="411" width="590" height="62" rx="10"/>
+  <text x="320" y="449" text-anchor="middle" class="title">⑤ 放入 Meta XR，啟用 MultiVR 與 OculusXR</text>
+  </g>
+  <path class="wire" d="M320 389V407"/>
+  <g class="step">
+  <rect class="node" x="25" y="497" width="590" height="62" rx="10"/>
+  <text x="320" y="535" text-anchor="middle" class="title">⑥ 依序建置 UnrealEditor、專案 Editor</text>
+  </g>
+  <path class="wire" d="M320 475V493"/>
+  <g class="step">
+  <rect class="game" x="25" y="583" width="590" height="62" rx="10"/>
+  <text x="320" y="621" text-anchor="middle" class="dark title">⑦ 開啟專案，在 Pawn 的 Add 面板搜尋 MultiVR</text>
+  </g>
+  <path class="wire" d="M320 561V579"/>
+  <text x="354" y="296" text-anchor="middle" class="">齊全</text>
+  <g class="step">
+  <rect class="node" x="638" y="256" width="257" height="78" rx="10"/>
+  <text x="766.5" y="289" text-anchor="middle" class="title">補齊相依檔</text>
+  <text x="766.5" y="315" text-anchor="middle" class="">Include 與 Library 包</text>
+  </g>
+  <path class="wire" d="M617 224H766V252"/>
+  <text x="695" y="212" text-anchor="middle" class="">缺檔</text>
+  <path class="wire" d="M766 337V356H619"/>
+</svg>

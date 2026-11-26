@@ -18,21 +18,7 @@
 
 先用單台 Quest 驗證 ArUco 定位。先在編輯器接好 Blueprint，再打包到頭盔驗證。下圖以上下兩段標出設定與執行的時機。
 
-```mermaid
-flowchart TD
-    subgraph Editor["在 UE 編輯器設定"]
-        P["在玩家 Pawn 加入 MultiVR Component"] --> V["設定 Start System 的 Target 與輸入腳位"]
-        V --> W["接好事件與執行線，Compile、Save"]
-    end
-    subgraph Runtime["在頭盔上執行"]
-        B["Pawn · Event BeginPlay"] --> E["綁定 OnSystemReady 等事件"]
-        E --> T["執行 Start System，使用當次的後台、房間與地圖參數"]
-        T --> D["插件下載標定與地圖，啟動相機"]
-        D --> M["玩家正對牆面 marker 站穩"]
-        M --> R["OnSystemReady → 顯示定位完成"]
-    end
-    W -->|打包、安裝並啟動 APK| B
-```
+[![單台頭盔首次定位。先在編輯器設定 Start System 與事件，再打包到頭盔驗證首次定位。](../images/multivr/headset-startup.svg)](../images/multivr/headset-startup.svg)
 
 ### 1. 在 VR Pawn 上加入元件
 

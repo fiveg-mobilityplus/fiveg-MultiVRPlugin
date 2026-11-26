@@ -24,17 +24,7 @@
 
 ### 安裝流程一覽
 
-```mermaid
-flowchart TD
-    A["① 核對 UE 版本，設定交付包的 BuildId"] --> B["② 複製完整 Plugins/MultiVR"]
-    B --> C{"③ Android 標頭與函式庫齊全？"}
-    C -->|缺檔| D["補齊對應的 Include 與 Library 包"]
-    C -->|齊全| E["④ 設定 Game Target 與 Server Target"]
-    D --> E
-    E --> F["⑤ 放入 Meta XR，啟用 MultiVR 與 OculusXR"]
-    F --> G["⑥ 依序建置 UnrealEditor、專案 Editor"]
-    G --> H["⑦ 開啟專案，在 Pawn 的 Add 面板搜尋 MultiVR"]
-```
+[![插件安裝流程。依序設定 BuildId、複製插件、核對相依檔、設定 Target、啟用插件、建置與驗證。](../images/multivr/installation-flow.svg)](../images/multivr/installation-flow.svg)
 
 圖中的編號對應下方七個操作步驟。完整 zip 若已包含 Android 相依檔，核對完第 3 步即可繼續。
 

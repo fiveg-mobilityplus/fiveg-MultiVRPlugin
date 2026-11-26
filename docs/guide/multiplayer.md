@@ -8,16 +8,7 @@
 
 正式開場時，Lobby 會帶入遊戲伺服器位址。下圖是 **Content 的 Pawn 藍圖**：第一次 BeginPlay 負責加入多人關卡；進入該關卡後，新 Pawn 的 BeginPlay 再啟動定位。
 
-```mermaid
-flowchart TD
-    B["Pawn · Event BeginPlay"] --> E["綁定事件、讀取命令列"]
-    E --> A{"有 serverip 且 Is Standalone？"}
-    A -->|是| O["Execute Console Command · open 伺服器位址"]
-    O -->|連線成功，切換關卡並生成新 Pawn| B
-    A -->|否| I{"MultiVRGIS 已連後台？"}
-    I -->|否| S["StartSystem · 使用後台位址、房間、地圖"]
-    I -->|是| K["沿用後台連線"]
-```
+[![頭盔端多人開場。換關卡後重新執行 BeginPlay，尚未連後台時才呼叫 StartSystem。](../images/multivr/multiplayer-pawn.svg)](../images/multivr/multiplayer-pawn.svg)
 
 1. 後台開始遊戲時，Lobby 收到 `headset_game_backend_command`（`command=connect`）：
 
@@ -74,14 +65,7 @@ flowchart TD
 
 ### Content Server 的 GameMode
 
-```mermaid
-flowchart TD
-    B["GameMode · Event BeginPlay"] --> D{"Is Dedicated Server？"}
-    D -->|否| X["結束此分支"]
-    D -->|是| E["綁定 OnWebAction_StartGame 與 OnWebAction_PauseGame"]
-    E --> C["StartConnectWebSocket · 登記到場館後台"]
-    C --> R["遊戲載入與狀態變動時回報進度、狀態"]
-```
+[![Content Server 的 GameMode。Dedicated Server 綁定事件、登記到後台，並回報遊戲進度與狀態。](../images/multivr/server-startup.svg)](../images/multivr/server-startup.svg)
 
 
 | 先綁定操作頁面的開始事件 | 再登記伺服器連線 |

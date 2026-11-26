@@ -29,25 +29,7 @@
 
 ### 一場遊戲怎麼開始與結束
 
-```mermaid
-sequenceDiagram
-    participant B as 場館後台
-    participant S as Content Server
-    participant L as 頭盔上的 Lobby
-    participant C as 頭盔上的 Content
-    B->>S: 工作人員建立房間，啟動遊戲伺服器
-    S->>B: 登記遊戲位址與房間
-    B->>L: 指定 APK、伺服器、房間與地圖
-    L->>C: 中斷 Lobby 後台連線，啟動 APK 並傳入參數
-    C->>S: open 加入 UE 多人遊戲
-    C->>B: StartSystem 連線並索取標定與地圖
-    B-->>C: 回傳標定與場地地圖
-    C->>C: 相機看見 marker，首次定位完成
-    B->>S: 工作人員開始或暫停遊戲
-    B->>C: 工作人員結束遊戲
-    C->>C: 收到 WSMessage_CloseGame，執行 Quit Game
-    L->>B: 回到待機畫面，重新連線
-```
+[![一場遊戲的開場與結束。從建立房間、派發 APK、連線與首次定位，到結束遊戲並回到待機。](../images/multivr/session-sequence.svg)](../images/multivr/session-sequence.svg)
 
 ## 執行時程式與功能
 

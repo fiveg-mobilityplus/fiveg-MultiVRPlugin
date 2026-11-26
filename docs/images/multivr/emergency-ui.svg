@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="930" height="500" viewBox="0 0 930 500" role="img" aria-labelledby="title desc">
+  <title id="title">緊急警報 UI 的事件接法</title>
+  <desc id="desc">發出警報時依 Level 顯示 UI 與 Instruction，解除警報時清除所有警報 UI。</desc>
+  <style>text{font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;font-size:20px;fill:#e3e8ee}.title{font-size:23px;font-weight:700}.heading{font-size:25px;font-weight:700;fill:#f4f8fc}.node{fill:#202c39;stroke:#81909f;stroke-width:2}.game{fill:#d9edff;stroke:#70b7fa;stroke-width:2}.dark{fill:#10243b}.group{fill:#172537;stroke:#455a72;stroke-width:1.5}.wire{fill:none;stroke:#a9c2d8;stroke-width:2.5;stroke-linejoin:round;marker-end:url(#arrow)}</style>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#a9c2d8"/></marker></defs>
+  <rect width="930" height="500" rx="14" fill="#101b2a"/>
+  <g class="step">
+  <rect class="game" x="290" y="20" width="350" height="67" rx="10"/>
+  <text x="465" y="47.5" text-anchor="middle" class="dark title">BeginPlay</text>
+  <text x="465" y="73.5" text-anchor="middle" class="dark ">Get MultiVRGIS</text>
+  </g>
+  <path class="wire" d="M465 90V112H242V142"/>
+  <path class="wire" d="M465 112H687V142"/>
+  <g class="step">
+  <rect class="node" x="35" y="146" width="415" height="70" rx="10"/>
+  <text x="242.5" y="188" text-anchor="middle" class="title">Bind Event to On Emergency Alert</text>
+  </g>
+  <g class="step">
+  <rect class="node" x="480" y="146" width="415" height="70" rx="10"/>
+  <text x="687.5" y="188" text-anchor="middle" class="title">Bind Event to On Emergency Clear</text>
+  </g>
+  <path class="wire" d="M242 219V260"/>
+  <path class="wire" d="M687 219V260"/>
+  <g class="step">
+  <rect class="node" x="35" y="264" width="415" height="74" rx="10"/>
+  <text x="242.5" y="295" text-anchor="middle" class="title">Switch on Level</text>
+  <text x="242.5" y="321" text-anchor="middle" class="">選擇對應的警報 UI</text>
+  </g>
+  <g class="step">
+  <rect class="game" x="480" y="264" width="415" height="74" rx="10"/>
+  <text x="687.5" y="308" text-anchor="middle" class="dark title">移除所有警報 UI</text>
+  </g>
+  <path class="wire" d="M242 341V386"/>
+  <g class="step">
+  <rect class="game" x="35" y="390" width="415" height="74" rx="10"/>
+  <text x="242.5" y="421" text-anchor="middle" class="dark title">Set Text</text>
+  <text x="242.5" y="447" text-anchor="middle" class="dark ">顯示 Instruction 的文字</text>
+  </g>
+</svg>
