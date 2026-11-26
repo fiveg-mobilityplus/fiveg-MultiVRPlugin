@@ -1,114 +1,108 @@
 # MultiVR Plugin
 
-Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** 所需的定位、連線與 XR 週邊整合。
-針對 Meta Quest 3 / 3S / Pro（Android arm64）與 Win64 編輯器開發環境設計。
+MultiVR Plugin 是為**大空間多人 VR（Location-Based VR）**設計的 Unreal Engine 5 預建插件。插件將虛擬場景對齊實體場地，連接遊戲與場館後台，並整合頭盔的透視與追蹤功能。頭盔端支援 Meta Quest 3、Quest 3S 與 Quest Pro（Android arm64），編輯器與遊戲伺服器使用 Win64。
 
-本 repo 提供的是**已經建置好的插件**：放進你的專案、照[安裝步驟](#安裝步驟)設定後，就能在編輯器使用、打包 Android APK 與 Win64 content server，不需要自己編譯插件。
+## 主要能力
 
-> **第一次接觸本系統？** 先讀 [先認識這個系統](#先認識這個系統)，10 分鐘內就能知道整套系統怎麼運作、你要做哪些事。後面的章節是安裝步驟與技術參考，需要時再查。
+| 能力 | 用途 |
+|---|---|
+| 場地定位 | 利用頭盔相機辨識 ArUco 標記，或透過無標記定位（Markerless SLAM）估算位置與朝向，讓虛擬場景對齊實體場地。 |
+| 場館連線 | 透過 WebSocket 與 UDP 交換房間資訊、玩家位置、遊戲狀態及緊急警報。 |
+| 鄰近玩家同步 | 取得附近玩家的位置與朝向，供開發者顯示虛擬角色或接近提示。 |
+| Meta XR 整合 | 玩家靠近場地牆面或柱子時自動調整透視透明度，並可在支援的裝置上取得眼動與臉部追蹤資料。 |
+| 效能控制 | 開發者可透過 Blueprint 調整定位頻率、網路收送頻率與日誌等級。 |
+| WebRTC 串流信令 | 在頭盔與營運端之間交換建立畫面串流所需的 offer、answer 與 ICE candidate。 |
+| Galaxy 素材庫 | 開發者可在 UE 編輯器內瀏覽、下載模型，並匯入遊戲專案。 |
 
-主要能力：
-
-- **Aruco / Markerless SLAM 重定位**：讀取頭盔左右眼透視相機影像，以 OpenCV + Aruco（或 RTAB-Map markerless）計算世界座標，把 VR 場景對齊到真實場地。
-- **WebSocket / UDP 連線**：與後台（Local Server）交換房間、玩家位置、遊戲狀態、緊急事件等訊息。
-- **鄰近玩家同步**：以 `proximity_update` 廣播他人位置，供 avatar 或防碰撞提示使用。
-- **Meta XR 整合**：Passthrough 動態透明度（靠近牆、柱自動開透視）、Eye Tracking、Face Tracking。
-- **效能控制**：藍圖一個節點調整定位頻率、log 等級、網路收送頻率。
-- **WebRTC 串流信令**：頭盔畫面串流給營運端的 offer / answer / ICE 交換。
-- **編輯器工具**：Galaxy 素材庫瀏覽 / 下載 / 匯入（EUW + `MultiVREditor` 模組）。
-
----
+開發者負責交付頭盔上的 Android 遊戲 APK（Content）與場地電腦上的 Win64 遊戲伺服器（Content Server）。操作頁面、場館後台（Local Server）與頭盔待機程式（Lobby）由系統方提供。
 
 ## 目錄
 
-- [先認識這個系統](#先認識這個系統)
-- [環境需求](#環境需求)
-- [安裝步驟](#安裝步驟)
-- [目錄結構](#目錄結構)
-- [快速開始](#快速開始)
-- [API 參考](#api-參考)
-- [事件（Event Dispatcher）](#事件event-dispatcher)
-- [通訊協定](#通訊協定)
-- [SLAM 定位流程](#slam-定位流程)
-- [效能設定](#效能設定)
-- [Meta XR 功能](#meta-xr-功能)
-- [Android 打包注意事項](#android-打包注意事項)
-- [Log 說明](#log-說明)
-- [疑難排解](#疑難排解)
+| 想找的內容 | 章節 |
+|---|---|
+| 系統怎麼運作 | [整合路線](#第一次整合從這裡開始) · [系統架構](#先認識這個系統) · [一場遊戲的時序](#一場遊戲怎麼開始與結束) · [執行時程式與功能](#執行時程式與功能) |
+| 安裝交付包 | [環境需求](#環境需求) · [安裝步驟](#安裝步驟) · [插件目錄結構](#目錄結構) |
+| 在 UE 專案接線 | [範例專案對照](#範例專案對照) · [單台頭盔快速開始](#快速開始) · [Lobby 與多人遊戲](#multiplayer) · [Content Server 的 GameMode](#content-server-的-gamemode) |
+| 打包與場測 | [Android APK 與 Win64 Server 打包](#android-打包注意事項) · [場地驗收](#場地驗收) · [Log](#log-說明) · [疑難排解](#疑難排解) |
+| 查功能與參數 | [主要能力](#主要能力) · [API](#api-參考) · [事件](#events) · [通訊協定](#通訊協定) · [SLAM 定位](#slam-定位流程) · [效能設定](#效能設定) · [Meta XR](#meta-xr-功能) · [Galaxy 素材庫](#galaxy-素材庫) |
 
----
+## 第一次整合，從這裡開始
+
+| 階段 | 開發者的整合步驟 | 怎麼知道成功 |
+|---|---|---|
+| ① 認識系統 | [看懂頭盔的兩條連線](#先認識這個系統) | 知道哪個位址填入 `StartSystem`、哪個用來加入 UE 遊戲 |
+| ② 載入插件 | [確認環境](#環境需求)，再[安裝預建包](#安裝步驟) | 編輯器開啟專案，Pawn 的 Components 面板能找到 MultiVR |
+| ③ 定位一台頭盔 | [接好 Pawn 藍圖](#快速開始)，打包 APK，在場地看向牆面標記 | 自訂的 `OnSystemReady` 事件觸發 |
+| ④ 接上多人開場 | [讀取 Lobby 參數、連入 Content Server](#multiplayer) | 後台收到 `contentServer = connected`，伺服器可接收開始與暫停 |
+| ⑤ 交付與驗收 | [打包兩端](#android-打包注意事項)，再[走完一場遊戲](#場地驗收) | 兩台頭盔各自取得對方位置，結束後回到 Lobby |
 
 ## 先認識這個系統
 
-### 這套系統在做什麼
-
-玩家戴著 Meta Quest 頭盔，在一個**真實的場地**裡走動，頭盔裡看到的是**虛擬場景**，而且虛擬的牆、柱子跟真實的牆、柱子位置完全重疊；多位玩家在同一個場地裡，彼此看得到對方的位置。
-
-要做到這件事，需要解決三個問題，本插件都處理好了：
-
-| 問題 | 怎麼解決 |
-|------|----------|
-| 頭盔怎麼知道自己在場地的哪裡？ | 場地牆上、地上貼了很多**黑白方塊圖案（ArUco marker）**，每一顆的位置都事先量好存在「地圖」裡。頭盔的相機看到 marker，就能算出自己的精確位置，並把虛擬場景對齊到真實場地。這個過程叫**定位** |
-| 多位玩家怎麼看到彼此？ | 每台頭盔不斷把自己的位置傳給**後台**，後台再轉發給其他頭盔 |
-| 遊戲怎麼開始、結束？ | 工作人員在電腦上的**操作頁面**按「開始」，後台通知每台頭盔進入遊戲；按「結束」就全部退出 |
-
-### 系統裡有哪些東西
-
-```
-                        ┌────────────────────────────┐
-  工作人員 ── 操作頁面 ──▶│ 後台（Local Server）        │◀── 存放：場地地圖、相機標定檔
-                        │ 電腦上的伺服器，port 5000   │
-                        └───┬─────────────┬──────────┘
-                 WebSocket  │             │  WebSocket
-            ┌───────────────┘             └──────────────┐
-            ▼                                            ▼
-  ┌─────────────────── 頭盔 ───────────────────┐   ┌──────────────────────┐
-  │ Lobby App ──(啟動)──▶ 遊戲 App（Content）    │──▶│ 遊戲伺服器            │
-  │ 待機畫面               ★使用本插件           │UDP│（Content Server）     │
-  │                        相機看 marker → 定位  │   │ ★使用本插件           │
-  └─────────────────────────────────────────────┘   │ 電腦上，port 7777     │
-                                                    └──────────────────────┘
+```mermaid
+flowchart TB
+    subgraph PC["場地電腦"]
+        UI["操作頁面 · 系統方"]
+        LS["Local Server · 場館後台"]
+        GS["Content Server · 開發者提供的 UE 遊戲伺服器"]
+        UI -->|建立房間、開始與結束| LS
+        GS <-->|WebSocket · 進度與遊戲指令| LS
+    end
+    subgraph HMD["每台 Quest 頭盔"]
+        L["Lobby · 系統方待機程式"]
+        C["Content APK · 開發者提供的 UE 遊戲"]
+        L -->|啟動 APK，交付房間與位址| C
+    end
+    LS <-->|WebSocket · 待機與派發遊戲| L
+    C <-->|標定、場地地圖與玩家位置| LS
+    C <-->|UE 多人遊戲同步| GS
+    classDef vendor fill:#dbeafe,stroke:#2563eb,color:#172554
+    class C,GS vendor
 ```
 
-| 名詞 | 是什麼 | 誰負責 |
-|------|--------|--------|
-| **後台**（Local Server / fiveg-local） | 跑在場地電腦上的伺服器。管理房間、轉發玩家位置、提供地圖與標定檔、派發開始 / 結束指令 | 系統方提供 |
-| **操作頁面** | 工作人員用來建立房間、開始 / 暫停 / 結束遊戲的網頁 | 系統方提供 |
-| **Lobby** | 頭盔上的待機 App，開機自動啟動，等後台通知後啟動遊戲 App。**不使用本插件** | 系統方提供 |
-| **Content**（遊戲 App） | 你們開發的 UE 遊戲，打包成 Android APK 裝在頭盔上。**使用本插件**做定位與連線 | **你們開發** |
-| **Content Server**（遊戲伺服器） | 你們遊戲的 UE Dedicated Server，跑在電腦上，負責多人遊戲同步。**使用本插件**連後台 | **你們開發** |
-| **ArUco marker** | 貼在場地上的黑白方塊圖案，每一顆有自己的編號 | 現場佈置 |
-| **地圖**（Aruco 地圖） | 記錄每一顆 marker 在場地裡的位置，存在後台，用一個代號（`MapName`）取用 | 系統方量測建立 |
-| **標定檔** | 頭盔相機的鏡頭參數，存在後台，插件自動下載 | 系統方提供 |
-| **首次定位** | 遊戲開始時第一次對齊場地，決定虛擬場景的朝向。玩家要**正對牆上的 marker 站穩 1～2 秒** | 插件自動處理 |
-| **Passthrough（透視）** | 頭盔顯示真實世界的畫面。插件會在玩家靠近牆、柱時自動打開，避免撞到 | 插件自動處理 |
-| **MultiVRGIS** | 插件的主要入口（藍圖搜尋「Multi VRGIS」），所有連線、定位功能都從這裡呼叫 | — |
-| **MultiVR Component** | 掛在玩家 Pawn 上的元件，負責把定位結果套用到玩家位置 | — |
+**頭盔上的 Content 會連到兩個服務。** 即使服務跑在同一台電腦，也要依用途把位址交給正確的藍圖節點。
 
-### 一場遊戲從頭到尾發生什麼事
+| 要做的事 | 連到哪裡 | Content 怎麼連 |
+|---|---|---|
+| 取得地圖、標定與房間事件 | Local Server，WebSocket 預設 5000 | `StartSystem` 填入 `-wsserverip` 和 `-wsport`。插件另以 UDP 7000 上傳頭盔位置 |
+| 加入同一場 UE 多人遊戲 | Content Server，遊戲連線預設 UDP 7777 | 讀取含連接埠的 `-serverip`，執行 `open <serverip>` |
 
-1. **開場前**：工作人員啟動後台；玩家的頭盔開機，自動進入 **Lobby** 待機畫面，Lobby 連上後台。
-2. **建立房間**：工作人員在操作頁面建立房間、選擇地圖與要參加的頭盔，後台啟動**遊戲伺服器**。
-3. **進入遊戲**：後台通知每台頭盔的 Lobby，Lobby 啟動**遊戲 App**，並把「遊戲伺服器位址、房間、地圖」交給遊戲。
-4. **連線與定位**：遊戲 App 連進遊戲伺服器，並呼叫插件的 `StartSystem`。插件自動向後台下載標定檔與地圖、打開相機；玩家正對牆上的 marker 站穩，**1～3 秒內完成首次定位**，插件發出 `OnSystemReady` 事件。
-5. **遊戲進行中**：插件持續用 marker 校正玩家位置，並把位置傳給後台、接收其他玩家的位置（`OnDetectNearbyUsers`）。工作人員可以在操作頁面開始、暫停遊戲，或發出緊急警報。
-6. **結束**：工作人員按結束，插件發出 `WSMessage_CloseGame` 事件，遊戲 App 結束，頭盔回到 Lobby。
+**場地怎麼對齊？** 每個 ArUco marker 都有編號，系統方事先量好它的位置並存成場地地圖。遊戲帶入地圖代號（`MapName`），插件自動下載地圖和相機標定檔。玩家正對牆面 marker 站穩後，頭盔相機辨識標記，插件算出玩家在場地中的位置與朝向。以下首次定位範例採用這個 ArUco 流程。
 
-### 你要做的事（開發者清單）
+### 一場遊戲怎麼開始與結束
 
-| 步驟 | 做什麼 | 看哪一節 |
-|------|--------|----------|
-| 1 | 準備原始碼版 UE、設定 BuildId、放入插件、下載 markerless 相依檔 | [環境需求](#環境需求)、[安裝步驟](#安裝步驟) |
-| 2 | 在玩家 Pawn 加上 **MultiVR Component** | [快速開始](#快速開始) |
-| 3 | 在 Pawn 的 BeginPlay 讀取命令列參數、連遊戲伺服器、呼叫 `StartSystem` | [Lobby → Content 流程](#4-lobby--content-流程多人遊戲) |
-| 4 | 綁定事件：定位完成、附近玩家、關閉遊戲、緊急警報 | [事件](#事件event-dispatcher) |
-| 5 | 遊戲伺服器的 GameMode 呼叫 `StartConnectWebSocket`，回報進度與狀態 | [Lobby → Content 流程](#4-lobby--content-流程多人遊戲) 的 Content Server 端 |
-| 6 | 打包 Android APK 與 Win64 Server | [Android 打包注意事項](#android-打包注意事項) |
-| 7 | （選用）調整效能設定 | [效能設定](#效能設定) |
+```mermaid
+sequenceDiagram
+    participant B as 場館後台
+    participant S as Content Server
+    participant L as 頭盔上的 Lobby
+    participant C as 頭盔上的 Content
+    B->>S: 工作人員建立房間，啟動遊戲伺服器
+    S->>B: 登記遊戲位址與房間
+    B->>L: 指定 APK、伺服器、房間與地圖
+    L->>C: 中斷 Lobby 後台連線，啟動 APK 並傳入參數
+    C->>S: open 加入 UE 多人遊戲
+    C->>B: StartSystem 連線並索取標定與地圖
+    B-->>C: 回傳標定與場地地圖
+    C->>C: 相機看見 marker，首次定位完成
+    B->>S: 工作人員開始或暫停遊戲
+    B->>C: 工作人員結束遊戲
+    C->>C: 收到 WSMessage_CloseGame，執行 Quit Game
+    L->>B: 回到待機畫面，重新連線
+```
 
-> 有現成範例可以照著做：**example 專案**（UE 5.8）的 `BP_XRPawn`（頭盔端）、`BP_XRGameMode`（遊戲伺服器端）已經把上面 2～5 步都接好了。
+## 執行時程式與功能
 
----
+同一個 UE 專案會在頭盔和遊戲伺服器執行。接 Blueprint 時，先看功能發生在哪一端，再選該端的 Pawn 或 GameMode。
+
+| 現場發生什麼事 | 正在執行的程式 | 哪段程式負責 | 開發者要接的功能 |
+|---|---|---|---|
+| 操作員選房間、地圖和頭盔 | 操作頁面 → Local Server | 後台啟動 Content Server，通知 Lobby | 提供 APK 的 package name 和 Server 啟動地圖 |
+| 頭盔從待機畫面進入遊戲 | Lobby → Content APK | Lobby 用 Android Intent 帶入命令列，Content 的 Pawn 在 BeginPlay 讀取參數 | 讀取 `serverip`，在單機關卡用 `open` 加入伺服器 |
+| 虛擬場景對齊場地 | Content APK | `MultiVRGIS.StartSystem` 取得地圖與標定；`MultiVR Component` 將定位結果套用到 Pawn | 先綁 `OnSystemReady`，首次定位完成後顯示就緒畫面 |
+| 玩家走近彼此 | Content APK ↔ Local Server | 插件上傳位置，後台分送附近玩家資料 | 在 Pawn 接 `OnDetectNearbyUsers`，依玩家 ID、位置與朝向更新角色 |
+| 操作員開始或暫停遊戲 | Local Server → Content Server | Dedicated Server 的 GameMode 透過 `StartConnectWebSocket` 接收指令 | 接 `OnWebAction_StartGame`／`OnWebAction_PauseGame`，以 `WSSend_GameStatus` 回報狀態 |
+| 場館發出或解除警報 | Local Server → Content APK | 插件接收警報並自動回覆確認 | 接 `OnEmergencyAlert` 顯示指示，接 `OnEmergencyClear` 清除畫面 |
+| 工作人員結束遊戲 | Local Server → Content APK → Lobby | Content 收到關閉指令，Lobby 在 Content 結束後回到前景 | 在 `WSMessage_CloseGame` 執行 `Quit Game` |
 
 ## 環境需求
 
@@ -126,9 +120,27 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 
 ## 安裝步驟
 
-> **版本對應的 branch**：`main` = UE 5.8.4、`5.3.2` = UE 5.3.2。請 checkout 與你引擎相同版本的 branch。
+> **使用 AI Agent 協助安裝**
 >
-> 外掛在 repo 的 `Plugins/MultiVR`，裡面附的 `README.md` 與 `AGENT_INSTALL.md` 寫有該版本**實際的 BuildId**，請以那份為準。
+> 插件交付包內附 `Plugins/MultiVR/AGENT_INSTALL.md`。使用 AI Agent 協作的開發者，可將這份文件交給 Agent，並提供目標 UE 專案與引擎的路徑，請 Agent 依該版本的指引協助安裝插件及設定專案。
+
+### 安裝流程一覽
+
+```mermaid
+flowchart TD
+    A["① 核對 UE 版本，設定交付包的 BuildId"] --> B["② 複製完整 Plugins/MultiVR"]
+    B --> C{"③ Android 標頭與函式庫齊全？"}
+    C -->|缺檔| D["補齊對應的 Include 與 Library 包"]
+    C -->|齊全| E["④ 設定 Game Target 與 Server Target"]
+    D --> E
+    E --> F["⑤ 放入 Meta XR，啟用 MultiVR 與 OculusXR"]
+    F --> G["⑥ 依序建置 UnrealEditor、專案 Editor"]
+    G --> H["⑦ 開啟專案，在 Pawn 的 Add 面板搜尋 MultiVR"]
+```
+
+圖中的編號對應下方七個操作步驟。完整 zip 若已包含 Android 相依檔，核對完第 3 步即可繼續。
+
+開始前，向系統方確認交付包版本與 BuildId。上頭盔測試前，另備妥可連線的後台 IP、連接埠、測試房間代號、場地地圖代號，以及與地圖相符的牆面 marker。
 
 1. **設定引擎 BuildId**
    打開 `<引擎>\Engine\Build\Build.version`，在最後一個欄位後面加上一行（前一行要補逗號）：
@@ -145,10 +157,10 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
    每台要開這個專案的電腦都要做。插件只能在 BuildId 相同的引擎上載入，沒設定的話開專案會出現「模組遺失」並要求重新編譯。
 
 2. **放入外掛**
-   把 repo 裡整個 `Plugins/MultiVR` 資料夾複製到 `<專案>\Plugins\MultiVR`。已有舊版時，先整個刪除再放入，不要混用新舊檔案。
+   把交付包裡整個 `Plugins/MultiVR` 資料夾複製到 `<專案>\Plugins\MultiVR`。已有舊版時，先整個刪除再放入，不要混用新舊檔案。
 
-3. **補上 markerless 相依檔（從 git 取得時必做）**
-   RTAB-Map / PCL / Boost 的標頭與函式庫太大（約 3.2 GB），**沒有放進 git**，要另外下載。**沒補上的話 Android 打包會失敗**。
+3. **補上 markerless 相依檔（依交付包內容）**
+   RTAB-Map / PCL / Boost 的標頭與函式庫太大（約 3.2 GB），若交付包缺少下列檔案，請另外下載。**沒補上的話 Android 打包會失敗**。
 
    1. 下載 Include 包：https://drive.google.com/file/d/1QTqyZEEMALUr-rLC0KLCdpFL1AuSgw1J/view?usp=sharing
       解壓到 `<專案>\Plugins\MultiVR\Include\Android\include`
@@ -197,7 +209,7 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 - **不要刪除 `Plugins\MultiVR\Intermediate` 和 `Plugins\MultiVR\Binaries`**：插件打包要用到裡面的檔案，刪了就無法打包。清理專案時只刪專案自己的 `Intermediate`、`Binaries`。
 - 不要對 MultiVR 執行 Rebuild，也不要在出現「是否重新編譯 MultiVR」時按「是」：插件是建置好的，重新編譯一定失敗。出現這個對話框代表 BuildId 沒設對，回頭檢查步驟 1 和步驟 6。
 - 不要手動修改 `Plugins\MultiVR\Binaries\Win64\UnrealEditor.modules`。
-- 不要用其他來源的 OpenCV / RTAB-Map / PCL / Boost 替換 `Include` / `Library`：只用 repo 內附的檔案與上面兩個下載包，版本不符會連結錯誤或閃退。
+- 不要用其他來源的 OpenCV / RTAB-Map / PCL / Boost 替換 `Include` / `Library`：只用交付包內附的檔案與上面兩個下載包，版本不符會連結錯誤或閃退。
 
 ---
 
@@ -206,16 +218,17 @@ Unreal Engine 5 插件，提供 **大空間多人 VR（Location-Based VR）** �
 ```
 Plugins/MultiVR/
 ├─ MultiVR.uplugin
-├─ README.md / AGENT_INSTALL.md   本版本的安裝說明（含 BuildId）
+├─ README.md                      本版本的安裝說明（含 BuildId）
+├─ AGENT_INSTALL.md               供 AI Agent 協助安裝插件與設定 UE 專案的指引
 ├─ Binaries/ , Intermediate/      建置好的插件檔案（不可刪、不可改）
 ├─ Content/                       插件附帶的素材與編輯器工具（Galaxy 素材庫）
-├─ Include/ , Library/            插件需要的函式庫（RTAB-Map / PCL / Boost 要另外下載，見安裝步驟 3）
+├─ Include/ , Library/            插件需要的函式庫（RTAB-Map / PCL / Boost 依包內檔案確認，見安裝步驟 3）
 └─ Source/                        給專案引用的標頭檔（不需要修改）
 ```
 
 整個資料夾照原樣放進專案即可，裡面的檔案都不需要手動修改。
 
-你在藍圖裡會用到的只有兩個東西：
+開發者在 Blueprint 中會用到以下兩個插件入口：
 
 | 名稱 | 在哪裡用 | 負責 |
 |------|----------|------|
@@ -224,7 +237,37 @@ Plugins/MultiVR/
 
 ---
 
+## 範例專案對照
+
+若已從系統方取得 UE 5.8 的 **example 專案**，在 Unreal Editor 的 Content Browser 搜尋下列資產名稱，開啟 Blueprint 對照自己的專案。建議照實際整合進度分三次看。
+
+| 什麼時候看 | 打開哪個 Blueprint | 看哪一段、怎麼用 |
+|---|---|---|
+| 插件已載入，要讓第一台頭盔定位時 | `BP_XRPawn` | 看 Components 面板與 Event Graph。對照自己的玩家 Pawn，先接就緒事件，再呼叫 `StartSystem` |
+| 單台定位成功，要讓 Lobby 啟動多人遊戲時 | `BFL_GetArg`、`BP_XRPawn` | 看函式如何取出命令列參數，再看 Pawn 如何分流到 `open` 或 `StartSystem`。測試時改用自己的房間、地圖與連線位址 |
+| 打包 Win64 Server、準備測開始與暫停時 | `BP_XRGameMode` | 看 Dedicated Server 判斷、事件綁定及 `StartConnectWebSocket`，對照自己的 GameMode 回報進度與狀態的時機 |
+
+若尚未取得範例，可直接跟著下一節的流程圖與節點截圖接線。
+
 ## 快速開始
+
+先用單台 Quest 驗證 ArUco 定位。先在編輯器接好 Blueprint，再打包到頭盔驗證。下圖以上下兩段標出設定與執行的時機。
+
+```mermaid
+flowchart TD
+    subgraph Editor["在 UE 編輯器設定"]
+        P["在玩家 Pawn 加入 MultiVR Component"] --> V["設定 Start System 的 Target 與輸入腳位"]
+        V --> W["接好事件與執行線，Compile、Save"]
+    end
+    subgraph Runtime["在頭盔上執行"]
+        B["Pawn · Event BeginPlay"] --> E["綁定 OnSystemReady 等事件"]
+        E --> T["執行 Start System，使用當次的後台、房間與地圖參數"]
+        T --> D["插件下載標定與地圖，啟動相機"]
+        D --> M["玩家正對牆面 marker 站穩"]
+        M --> R["OnSystemReady → 顯示定位完成"]
+    end
+    W -->|打包、安裝並啟動 APK| B
+```
 
 ### 1. 在 VR Pawn 上加入元件
 
@@ -233,9 +276,18 @@ Plugins/MultiVR/
 
 > 確認這個 Pawn 就是遊戲實際會生成的 Pawn（GameMode 的 `Default Pawn Class`，或關卡中設為 `Auto Possess Player = Player 0` 的 Pawn）。
 
-### 2. 啟動系統
+| 在 Components 面板新增元件 | 在 Event Graph 取得插件入口 |
+|---|---|
+| <img src="docs/images/multivr/add-component.png" alt="在 Add 選單搜尋 Multi VR 元件" width="250"> | <img src="docs/images/multivr/get-multivrgis.png" alt="搜尋 Get MultiVRGIS Game Instance Subsystem" width="250"> |
+| 加到實際生成的玩家 Pawn。 | 取出的 MultiVRGIS 接到事件與函式的 Target。 |
 
-Blueprint 取得 `MultiVRGIS`（Get Game Instance Subsystem → MultiVRGIS，或直接搜尋「Multi VRGIS」getter）後呼叫：
+### 2. 設定 Start System 節點
+
+在 Pawn 的 Event Graph 放入 `Get MultiVRGIS`，從輸出腳位拉出 **Start System**。先設定下圖的輸入腳位，執行線在下一步接上。
+
+<img src="docs/images/multivr/start-system.png" alt="Start System 節點的 IP、Port、Map Name 與 Room ID 等輸入" width="210">
+
+單台頭盔測試可直接填入場館的後台 IP、Port、房間與地圖代號，並省略 UE 遊戲伺服器的 `-serverip`。正式多人開場時，在編輯器把這些腳位接到變數；遊戲啟動後從 Lobby 傳入的命令列取得當次的值，再執行節點。
 
 ```
 StartSystem(
@@ -250,17 +302,20 @@ StartSystem(
 )
 ```
 
-呼叫之後插件會自動做完以下所有事，不需要另外寫程式：連上後台 → 下載相機標定檔 → 下載地圖 → 打開相機開始定位 → 首次定位完成後發出 `OnSystemReady`。
+### 3. 接好事件與啟動執行線
 
-> **定位只能在頭盔上測試**：在編輯器（PIE）或 Win64 執行時，插件仍會連後台、下載地圖，但不會開相機，所以**不會有 `OnSystemReady`**。編輯器裡適合測連線與畫面，定位請打包 APK 上頭盔測。
+在玩家 Pawn 的 BeginPlay、**呼叫 `StartSystem` 之前**綁定。藍圖做法：`Get MultiVRGIS` 拉出線 → 搜尋 **Bind Event to On System Ready** → 從節點左邊紅色的 `Event` 腳位拉出 → `Add Custom Event`，由開發者在 Custom Event 後接上定位完成時要執行的遊戲邏輯。其他事件做法相同。
 
-### 3. 綁定事件
+**接線時對照**：下圖由左到右是首次定位、附近玩家事件，以及拆開一筆玩家資料的節點。
 
-在玩家 Pawn 的 BeginPlay、**呼叫 `StartSystem` 之前**綁定。藍圖做法：`Get MultiVRGIS` 拉出線 → 搜尋 **Bind Event to On System Ready** → 從節點左邊紅色的 `Event` 腳位拉出 → `Add Custom Event`，在這個 Custom Event 後面接你要做的事。其他事件做法相同。
+| 首次定位完成 | 收到附近玩家 | 讀取一筆玩家資料 |
+|---|---|---|
+| <img src="docs/images/multivr/system-ready.png" alt="Bind Event to On System Ready" width="210"> | <img src="docs/images/multivr/nearby-users.png" alt="Bind Event to On Detect Nearby Users" width="210"> | <img src="docs/images/multivr/break-user.png" alt="Break User 的 ID、位置、朝向與同房間欄位" width="190"> |
+| 接自訂事件顯示就緒畫面。 | 遍歷 Users 陣列。 | 用 Clientid 找角色，用 Position 與 Rotation 更新姿態。 |
 
 至少綁定以下事件：
 
-| 事件 | 什麼時候發生 | 你通常要做什麼 |
+| 事件 | 什麼時候發生 | 開發者的處理方式 |
 |------|--------------|----------------|
 | `OnSystemReady` | 首次定位完成 | 顯示開始畫面、允許玩家開始遊戲 |
 | `OnDetectNearbyUsers` | 收到其他玩家的位置（持續觸發） | 用 `Clientid` 生成 / 移動其他玩家的角色 |
@@ -268,17 +323,32 @@ StartSystem(
 | `OnEmergencyAlert` / `OnEmergencyClear` | 工作人員發出 / 解除緊急警報 | 顯示 / 清除警報畫面（見[緊急警報 UI 建議](#緊急警報-ui-建議)） |
 | `OnCameraBlock` | 頭盔相機被遮住 | 提示玩家不要遮住頭盔前方 |
 
+在 Event Graph 將白色執行線依序接成 **Event BeginPlay → Bind Event 節點 → Start System**。將 `OnSystemReady` 對應的 Custom Event 接到「定位完成」畫面提示，再 Compile、Save。
+
+#### 在頭盔上啟動與驗證
+
+呼叫之後插件會自動做完以下所有事，不需要另外寫程式：連上後台 → 下載相機標定檔 → 下載地圖 → 打開相機開始定位 → 首次定位完成後發出 `OnSystemReady`。
+
+> **定位只能在頭盔上測試**：在編輯器（PIE）或 Win64 執行時，插件仍會連後台、下載地圖，但不會開相機，所以**不會有 `OnSystemReady`**。編輯器裡適合測連線與畫面，定位請打包 APK 上頭盔測。
+
+**上機驗證**：依[打包步驟](#android-打包注意事項)安裝 APK，在測試房間啟動遊戲。戴好頭盔正對牆面 marker 站穩 1～2 秒。畫面出現「定位完成」即代表收到 `OnSystemReady`。若只看到連線成功，仍需等首次定位事件；可用 [Log 說明](#log-說明) 的 `[first-init]` 查看卡在哪個條件。
+
+<a id="multiplayer"></a>
+
 ### 4. Lobby → Content 流程（多人遊戲）
 
-系統分成三個角色：
+正式開場時，Lobby 會帶入遊戲伺服器位址。下圖是 **Content 的 Pawn 藍圖**：第一次 BeginPlay 負責加入多人關卡；進入該關卡後，新 Pawn 的 BeginPlay 再啟動定位。
 
-| 角色 | 執行於 | 說明 |
-|------|--------|------|
-| **Lobby**（`com.quest.lobby`） | 頭盔 | 獨立的 Android App（**不使用本插件**），開機自動啟動，等後台派發遊戲後用 Android Intent 啟動 Content APK |
-| **Content** | 頭盔 | 使用本插件的 UE 遊戲 APK，以 `vr_headset` 身分連後台、以 client 身分連 content server |
-| **Content Server** | Win64 Dedicated Server | 使用本插件的 UE 遊戲伺服器，以 `game_backend` 身分連後台，由後台啟動 |
-
-流程：
+```mermaid
+flowchart TD
+    B["Pawn · Event BeginPlay"] --> E["綁定事件、讀取命令列"]
+    E --> A{"有 serverip 且 Is Standalone？"}
+    A -->|是| O["Execute Console Command · open 伺服器位址"]
+    O -->|連線成功，切換關卡並生成新 Pawn| B
+    A -->|否| I{"MultiVRGIS 已連後台？"}
+    I -->|否| S["StartSystem · 使用後台位址、房間、地圖"]
+    I -->|是| K["沿用後台連線"]
+```
 
 1. 後台開始遊戲時，Lobby 收到 `headset_game_backend_command`（`command=connect`）：
 
@@ -329,13 +399,26 @@ StartSystem(
    - 連上後斷線，或回到單機關卡 → `disconnected`
 7. 後台結束遊戲時，Content 收到 `headset_game_backend_command`（`command=disconnect`），插件自動回覆 `game_close` 並廣播 **`WSMessage_CloseGame`**。**請在這裡結束 App（`Quit Game`）**，Lobby 會回到前景並重新連線後台。
 
-> 完整的 Blueprint 範例見 example 專案的 `BP_XRPawn`（頭盔端）、`BP_XRGameMode`（Content Server 端）與 `BFL_GetArg`（讀命令列參數）。
->
 > Lobby 與 Content 在同一台頭盔共用同一個 IPv4 作為 `clientId`，同一時間只能有一方連著後台；Lobby 會在啟動 Content 前先斷線，Content 結束後再重連。Lobby 的細節（安裝、watchdog、kiosk 設定）見 Lobby 專案的 README。
 >
 > `WSMessage_StartGame` 是舊流程（Lobby 也用本插件時）使用的事件，目前的 Lobby App 架構下 Content 不需要綁定。
 
-**Content Server 端**：
+#### Content Server 的 GameMode
+
+```mermaid
+flowchart TD
+    B["GameMode · Event BeginPlay"] --> D{"Is Dedicated Server？"}
+    D -->|否| X["結束此分支"]
+    D -->|是| E["綁定 OnWebAction_StartGame 與 OnWebAction_PauseGame"]
+    E --> C["StartConnectWebSocket · 登記到場館後台"]
+    C --> R["遊戲載入與狀態變動時回報進度、狀態"]
+```
+
+
+| 先綁定操作頁面的開始事件 | 再登記伺服器連線 |
+|---|---|
+| <img src="docs/images/multivr/server-start-event.png" alt="Bind Event to On Web Action Start Game" width="220"> | <img src="docs/images/multivr/server-connect.png" alt="Start Connect Web Socket 的 Room ID 和 Headset IDs 腳位" width="180"> |
+| 暫停事件用相同方式綁定 `OnWebAction_PauseGame`。 | 將命令列的房間代號與頭盔清單傳給後台。 |
 
 - 啟動範例：`exampleServer.exe /Game/<地圖> -port=7777 -ip=<本機區網 IP> -wsserverip=<後台 IP> -wsport=5000 -roomId=<房間> -headsetIds=<逗號分隔>`。地圖要放第一個參數，否則會載入空的預設地圖。
 - **`-ip` 不能空**：後台收到空 ip 會忽略這台 content server，房間綁不上，開始 / 暫停都沒反應。
@@ -348,6 +431,57 @@ StartSystem(
 ### 5.（選用）效能設定
 
 需要省 CPU 或調整 log 時，呼叫 `ApplyPerfSettings`，見[效能設定](#效能設定)。不呼叫則維持預設行為。
+
+---
+
+## Android 打包注意事項
+
+### 打包步驟
+
+**頭盔 APK**
+
+1. `Edit → Project Settings → Platforms → Android`：
+   - 按 **Configure Now** 接受 SDK 授權；
+   - 填 **Android Package Name**（例如 `com.YourCompany.example`）。**這個名稱要告訴系統方**，後台要用它讓 Lobby 啟動開發者交付的遊戲 APK（`connectData.packageName`）；
+   - Package for Meta Quest devices 勾選；Build 只勾 arm64。
+2. `Edit → Project Settings → Platforms → Android SDK`：填 SDK、NDK（版本見下方）、JDK 17 路徑。
+3. Meta XR 建議設定可用 Meta XR 插件的 **Project Setup Tool**（工具列 Meta XR 選單）一鍵套用。
+4. 工具列 `Platforms → Android → Package Project`，選輸出資料夾。完成後用資料夾內的 `Install_*.bat` 或 `adb install -r <apk>` 裝到頭盔。
+
+**Content Server（Win64）**
+
+1. 確認已有 `<專案>Server.Target.cs`（安裝步驟 4），並跑過一次步驟 6 的編輯器建置。
+2. 工具列 `Platforms → Windows`：**Build Target** 選 `<專案>Server` → `Package Project`。
+3. 輸出資料夾裡的 `<專案>Server.exe` 交給系統方，由後台啟動（啟動參數見 [Content Server 端](#multiplayer)）。
+
+### 插件自動處理的部分
+
+打包時插件會自動加入以下設定，**不需要手動加**：
+
+- Android 權限：`CAMERA`、`horizonos.permission.HEADSET_CAMERA`、`RECORD_AUDIO`、`MANAGE_EXTERNAL_STORAGE`
+- 頭盔相機存取與 WebRTC 串流需要的函式庫
+
+其他：
+
+- 只支援 **arm64-v8a**，Texture 格式建議 ASTC。
+- NDK 版本依引擎：UE 5.3.2 用 r25b、UE 5.8.4 用 r27c。
+- 執行期會先請求 Android 權限，權限未過前連線會先擱置，取得後自動續連。
+- 標定檔與地圖檔每次啟動時由插件自動從後台下載，不需要放進專案。
+- 若用 `-CookAll` 打包，可在 `DefaultGame.ini` 的 `[/Script/UnrealEd.ProjectPackagingSettings]` 加入 `+DirectoriesToNeverCook=(Path="/MultiVR/EUW")`，排除編輯器工具 Widget。
+
+---
+
+## 場地驗收
+
+交付頭盔 APK、Android package name、Win64 Server 打包目錄及伺服器啟動地圖。與系統方用同一房間、兩台頭盔依序走一次下表。
+
+| 現場操作 | 成功時看得到什麼 | 若卡住，先查 |
+|---|---|---|
+| 建立房間並選擇兩台頭盔 | Content Server 啟動，兩台 Lobby 各自開啟指定 APK | Server 的地圖與區網 IP、APK 的 package name |
+| 等待玩家進入多人關卡 | 後台收到兩台頭盔的 `contentServer = connected` | `-serverip` 是否包含遊戲連接埠、UDP 7777 是否可達 |
+| 讓兩位玩家各自面向牆面 marker 站穩 | 兩端都觸發 `OnSystemReady`，場景方向與實體場地一致 | `MapName`、標定檔與 `[first-init]` log |
+| 讓兩位玩家靠近並移動 | `OnDetectNearbyUsers` 回傳對方位置，遊戲的角色或提示跟著移動 | 事件綁定、房間代號與 UDP 7000 |
+| 從操作頁面開始、暫停，再結束遊戲 | Server 收到開始與暫停事件，兩台 Content 結束後回到 Lobby | GameMode 的事件綁定、Pawn 的 `WSMessage_CloseGame → Quit Game` |
 
 ---
 
@@ -418,6 +552,8 @@ StartSystem(
 
 ---
 
+<a id="events"></a>
+
 ## 事件（Event Dispatcher）
 
 ### 通用
@@ -435,7 +571,7 @@ StartSystem(
 
 | 事件 | 參數 |
 |------|------|
-| `WSMessage_StartGame` | `roomid, execPath, ip, port`：舊流程用（Lobby 也使用本插件時）。目前 Lobby 是獨立 App，Content 改由命令列取得參數，見 [Lobby → Content 流程](#4-lobby--content-流程多人遊戲) |
+| `WSMessage_StartGame` | `roomid, execPath, ip, port`：舊流程用（Lobby 也使用本插件時）。目前 Lobby 是獨立 App，Content 改由命令列取得參數，見 [Lobby → Content 流程](#multiplayer) |
 
 ### Content（頭盔端）
 
@@ -453,6 +589,11 @@ StartSystem(
 
 `EEmergencyLevel`：`NOTICE / WARNING / CRITICAL`
 `EEmergencyCause`：`CUSTOM / FIRE / EARTHQUAKE / EVACUATION`
+
+| 發出警報 | 解除警報 |
+|---|---|
+| <img src="docs/images/multivr/emergency-alert.png" alt="On Emergency Alert 與拆解警報資料" width="170"> | <img src="docs/images/multivr/emergency-clear.png" alt="On Emergency Clear 的自訂事件" width="180"> |
+| 從 Alert Data 取出 Level 與 Instruction。 | 收到事件時清除警報 UI。 |
 
 #### 緊急警報 UI 建議
 
@@ -573,6 +714,10 @@ StartSystem(
 | `Upload Hz` | 0 | 頭盔位置每秒最多上傳幾次。0 = 不限（原本每秒 20 次） |
 | `Remote Hz` | 0 | 其他玩家位置每秒最多處理幾次。0 = 全部處理 |
 
+<img src="docs/images/multivr/perf-settings.png" alt="Apply Perf Settings 的五個輸入腳位" width="180">
+
+調整單一參數時，也要填入其餘四個參數的預期值。
+
 使用注意：
 
 - **沒有呼叫順序的要求**：Start System 之前或之後、BeginPlay 或任何事件之後都可以，隨時呼叫立即生效。
@@ -595,42 +740,18 @@ StartSystem(
 
 ---
 
-## Android 打包注意事項
+<img src="docs/images/multivr/zone-passthrough.png" alt="Set Auto Zone Passthrough 的 Enable 勾選框" width="210">
 
-### 打包步驟
+在玩家 Pawn 的 **MultiVR Component** 上呼叫此節點，可切換靠近場地邊界時的自動透視。
 
-**頭盔 APK**
+## Galaxy 素材庫
 
-1. `Edit → Project Settings → Platforms → Android`：
-   - 按 **Configure Now** 接受 SDK 授權；
-   - 填 **Android Package Name**（例如 `com.YourCompany.example`）。**這個名稱要告訴系統方**，後台要用它讓 Lobby 啟動你的遊戲（`connectData.packageName`）；
-   - Package for Meta Quest devices 勾選；Build 只勾 arm64。
-2. `Edit → Project Settings → Platforms → Android SDK`：填 SDK、NDK（版本見下方）、JDK 17 路徑。
-3. Meta XR 建議設定可用 Meta XR 插件的 **Project Setup Tool**（工具列 Meta XR 選單）一鍵套用。
-4. 工具列 `Platforms → Android → Package Project`，選輸出資料夾。完成後用資料夾內的 `Install_*.bat` 或 `adb install -r <apk>` 裝到頭盔。
+在 UE 編輯器開啟素材庫後，可依類別或名稱找模型，下載後透過 Unreal Importer 匯入專案。
 
-**Content Server（Win64）**
-
-1. 確認已有 `<專案>Server.Target.cs`（安裝步驟 4），並跑過一次步驟 6 的編輯器建置。
-2. 工具列 `Platforms → Windows`：**Build Target** 選 `<專案>Server` → `Package Project`。
-3. 輸出資料夾裡的 `<專案>Server.exe` 交給系統方，由後台啟動（啟動參數見 [Content Server 端](#4-lobby--content-流程多人遊戲)）。
-
-### 插件自動處理的部分
-
-打包時插件會自動加入以下設定，**不需要手動加**：
-
-- Android 權限：`CAMERA`、`horizonos.permission.HEADSET_CAMERA`、`RECORD_AUDIO`、`MANAGE_EXTERNAL_STORAGE`
-- 頭盔相機存取與 WebRTC 串流需要的函式庫
-
-其他：
-
-- 只支援 **arm64-v8a**，Texture 格式建議 ASTC。
-- NDK 版本依引擎：UE 5.3.2 用 r25b、UE 5.8.4 用 r27c。
-- 執行期會先請求 Android 權限，權限未過前連線會先擱置，取得後自動續連。
-- 標定檔與地圖檔每次啟動時由插件自動從後台下載，不需要放進專案。
-- 若用 `-CookAll` 打包，可在 `DefaultGame.ini` 的 `[/Script/UnrealEd.ProjectPackagingSettings]` 加入 `+DirectoriesToNeverCook=(Path="/MultiVR/EUW")`，排除編輯器工具 Widget。
-
----
+| ① 找到 Widget | ② 開啟素材庫 |
+|---|---|
+| <img src="docs/images/multivr/galaxy-widget.png" alt="MultiVR Content 的 EUW 資料夾內選取 WB_Galaxy" width="250"> | <img src="docs/images/multivr/galaxy-run.png" alt="右鍵選單的 Run Editor Utility Widget" width="250"> |
+| Content Browser → Plugins → MultiVR Content → EUW → **WB_Galaxy**。 | 右鍵選 **Run Editor Utility Widget**，登入後選擇模型。匯入結果位於 `Content/GalaxyImport/<模型名稱>`。 |
 
 ## Log 說明
 
@@ -658,7 +779,7 @@ StartSystem(
 | `calibration not exist` / `aruco map not exist` | 後台沒有該 `deviceType` 的標定檔或該 `MapName` 的地圖，向後台確認代號 |
 | 開場定位很久才完成 | 看 `[first-init]` log：「無 marker」或「地板」多 → 請正對牆面 marker；「未站定」多 → 請站穩；「雙眼不一致」多 → 靠近 marker 一點再試 |
 | 走動時位置校正變慢 | `Slam Interval` 設太大，調小或設回 0 |
-| 編輯器裡按 Play 一直等不到 `OnSystemReady` | 正常：相機只在頭盔上開，定位要打包上頭盔測（見[啟動系統](#2-啟動系統)） |
+| 編輯器裡按 Play 一直等不到 `OnSystemReady` | 正常：相機只在頭盔上開，定位要打包上頭盔測（見[頭盔驗證](#在頭盔上啟動與驗證)） |
 | 建置時找不到 `OculusXR` / `MultiVRMetaModule` 相關符號 | 專案沒放入或沒啟用 Meta XR 插件（安裝步驟 5） |
 | 頭盔 `open` content server 後連不上（`contentServer = failed`） | 執行 server 的電腦防火牆要開放 UDP 7777；確認 `-serverip` 是電腦的區網 IP |
 | 收不到 `proximity_update` | 確認 UDP 7000 未被防火牆阻擋，且首次定位已完成 |
