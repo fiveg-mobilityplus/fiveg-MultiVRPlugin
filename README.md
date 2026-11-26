@@ -2,7 +2,7 @@
 
 **FreeRoam Studio** 是 Moonshine FreeRoam 多人自由走動式 VR 平台中，負責內容與開發整合的模組。**MultiVR Plugin 是 FreeRoam Studio 在 Unreal Engine 5 上的核心插件**，讓開發者能將 UE 遊戲接入場館後台，把虛擬場景對齊實體場地，取得同場玩家的位置，並整合頭盔的透視與追蹤功能。[Moonshine FreeRoam 平台介紹](https://freeroam.moonshine.tw/zh-tw/)
 
-![FreeRoam Studio 場域示意，多位參與者戴著 VR 頭盔在同一個實體空間活動](docs/images/multivr/freeroam-studio.webp)
+![FreeRoam Studio 內容與開發整合工具。把內容帶進大型多人自由走動 VR。以 Unreal／Unity Plugin、SDK、自研定位與場域工具鏈，串起內容製作、多人連線與現場部署。內容團隊專注創作，其餘交給平台。](docs/images/multivr/freeroam-studio.webp)
 
 ## 主要能力
 
