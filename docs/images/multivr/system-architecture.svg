@@ -5,10 +5,10 @@
     text { font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif; }
     .group { fill: #172537; stroke: #455a72; stroke-width: 1.5; }
     .heading { fill: #f4f8fc; font-size: 26px; font-weight: 700; }
-    .node { fill: #f3f6fa; stroke: #c6d2df; stroke-width: 2; }
+    .node { fill: #202c39; stroke: #81909f; stroke-width: 2; }
     .game { fill: #1755b5; stroke: #85baff; stroke-width: 2; }
-    .name { fill: #10243b; font-size: 25px; font-weight: 700; }
-    .role { fill: #304b65; font-size: 20px; }
+    .name { fill: #e3e8ee; font-size: 25px; font-weight: 700; }
+    .role { fill: #bcc7d2; font-size: 20px; }
     .on-game { fill: #fff; }
     .label { fill: #e3edf7; font-size: 19px; }
     .wire { fill: none; stroke: #a9c2d8; stroke-width: 2.5; marker-end: url(#arrow); }
