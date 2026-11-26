@@ -6,7 +6,7 @@
     .group { fill: #172537; stroke: #455a72; stroke-width: 1.5; }
     .heading { fill: #f4f8fc; font-size: 26px; font-weight: 700; }
     .node { fill: #202c39; stroke: #81909f; stroke-width: 2; }
-    .game { fill: #d9edff; stroke: #70b7fa; stroke-width: 2; }
+    .game { fill: #d9edff; stroke: #ef4444; stroke-width: 3; }
     .name { fill: #e3e8ee; font-size: 25px; font-weight: 700; }
     .role { fill: #bcc7d2; font-size: 20px; }
     .name.on-game { fill: #10243b; }
