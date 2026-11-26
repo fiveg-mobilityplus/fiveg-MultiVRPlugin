@@ -4,6 +4,10 @@
 
 MultiVR 以預建插件交付，整合頭盔的透視與追蹤功能。頭盔端支援 Meta Quest 3、Quest 3S 與 Quest Pro（Android arm64），編輯器與遊戲伺服器使用 Win64。
 
+![FreeRoam Studio 場域示意，多位參與者戴著 VR 頭盔在同一個實體空間活動](docs/images/multivr/freeroam-studio.webp)
+
+*多人自由走動式 VR 場域。圖片取自 [FreeRoam Studio 官方產品頁](https://freeroam.moonshine.tw/zh-tw/studio/)。*
+
 ## 主要能力
 
 | 能力 | 用途 |
@@ -751,6 +755,10 @@ flowchart TD
 ## Galaxy 素材庫
 
 在 UE 編輯器開啟素材庫後，可依類別或名稱找模型，下載後透過 Unreal Importer 匯入專案。
+
+<img src="docs/images/multivr/galaxy-assets.webp" alt="Galaxy 素材庫概念圖，共用模型可組合成不同的虛擬場景" width="600">
+
+*Galaxy 共用模型與場景組合示意。圖片取自 [FreeRoam Studio 官方產品頁](https://freeroam.moonshine.tw/zh-tw/studio/)。*
 
 | ① 找到 Widget | ② 開啟素材庫 |
 |---|---|
