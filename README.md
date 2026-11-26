@@ -1,20 +1,46 @@
 # MultiVR Plugin
 
-**FreeRoam Studio** 是 Moonshine FreeRoam 多人自由走動式 VR 平台中，負責內容與開發整合的模組。**MultiVR Plugin 是 FreeRoam Studio 在 Unreal Engine 5 上的核心插件**，讓開發者能將 UE 遊戲接入場館後台，把虛擬場景對齊實體場地，取得同場玩家的位置，並整合頭盔的透視與追蹤功能。[Moonshine FreeRoam 平台介紹](https://freeroam.moonshine.tw/zh-tw/)
+**FreeRoam Studio** 是 Moonshine FreeRoam 多人自由走動式 VR 平台中，負責內容與開發整合的模組。**MultiVR Plugin 是 FreeRoam Studio 在 Unreal Engine 5 上的核心插件**，讓開發者能將 UE 遊戲接入場館後台，把虛擬場景對齊實體場地，取得同場玩家的位置，並整合頭盔的透視與追蹤功能。
 
 ![FreeRoam Studio 內容與開發整合工具。把內容帶進大型多人自由走動 VR。以 Unreal／Unity Plugin、SDK、自研定位與場域工具鏈，串起內容製作、多人連線與現場部署。內容團隊專注創作，其餘交給平台。](docs/images/multivr/freeroam-studio.webp)
 
 ## 主要能力
 
-| 能力 | 用途 |
-|---|---|
-| 場地定位 | 利用頭盔相機辨識 ArUco 標記，或透過無標記定位（Markerless SLAM）估算位置與朝向，讓虛擬場景對齊實體場地。 |
-| 場館連線 | 透過 WebSocket 與 UDP 交換房間資訊、玩家位置、遊戲狀態及緊急警報。 |
-| 鄰近玩家同步 | 取得附近玩家的位置與朝向，供開發者顯示虛擬角色或接近提示。 |
-| Meta XR 整合 | 玩家靠近場地牆面或柱子時自動調整透視透明度，並可在支援的裝置上取得眼動與臉部追蹤資料。 |
-| 效能控制 | 開發者可透過 Blueprint 調整定位頻率、網路收送頻率與日誌等級。 |
-| WebRTC 串流信令 | 在頭盔與營運端之間交換建立畫面串流所需的 offer、answer 與 ICE candidate。 |
-| Galaxy 素材庫 | 開發者可從 UE 編輯器存取 FreeRoam Studio 的 Galaxy 素材庫，瀏覽、下載模型並匯入遊戲專案。 |
+<table>
+  <thead>
+    <tr><th width="22%">能力</th><th>用途</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>場地定位</td>
+      <td>利用頭盔相機辨識 ArUco 標記，或透過無標記定位（Markerless SLAM）估算位置與朝向，讓虛擬場景對齊實體場地。</td>
+    </tr>
+    <tr>
+      <td>場館連線</td>
+      <td>透過 WebSocket 與 UDP 交換房間資訊、玩家位置、遊戲狀態及緊急警報。</td>
+    </tr>
+    <tr>
+      <td>鄰近玩家同步</td>
+      <td>取得附近玩家的位置與朝向，供開發者顯示虛擬角色或接近提示。</td>
+    </tr>
+    <tr>
+      <td>Meta XR 整合</td>
+      <td>玩家靠近場地牆面或柱子時自動調整透視透明度，並可在支援的裝置上取得眼動與臉部追蹤資料。</td>
+    </tr>
+    <tr>
+      <td>效能控制</td>
+      <td>開發者可透過 Blueprint 調整定位頻率、網路收送頻率與日誌等級。</td>
+    </tr>
+    <tr>
+      <td>WebRTC 串流信令</td>
+      <td>在頭盔與營運端之間交換建立畫面串流所需的 offer、answer 與 ICE candidate。</td>
+    </tr>
+    <tr>
+      <td>Galaxy 素材庫</td>
+      <td>開發者可從 UE 編輯器存取 FreeRoam Studio 的 Galaxy 素材庫，瀏覽、下載模型並匯入遊戲專案。</td>
+    </tr>
+  </tbody>
+</table>
 
 開發者負責交付頭盔上的 Android 遊戲 APK（Content）與場地電腦上的 Win64 遊戲伺服器（Content Server）。操作頁面、場館後台（Local Server）與頭盔待機程式（Lobby）由系統方提供。
 
