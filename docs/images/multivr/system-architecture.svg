@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" role="img" aria-labelledby="title desc">
+  <title id="title">MultiVR 系統架構</title>
+  <desc id="desc">左側的 Quest 頭盔由 Lobby 啟動 Content APK。右側的操作頁面透過 Local Server 管理房間。頭盔遊戲向 Local Server 取得標定、地圖與玩家位置，並連到 Content Server 同步多人遊戲。Content Server 向後台回報進度並接收遊戲指令。</desc>
+  <style>
+    text { font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif; }
+    .group { fill: #172537; stroke: #455a72; stroke-width: 1.5; }
+    .heading { fill: #f4f8fc; font-size: 26px; font-weight: 700; }
+    .node { fill: #f3f6fa; stroke: #c6d2df; stroke-width: 2; }
+    .game { fill: #d9edff; stroke: #70b7fa; stroke-width: 2; }
+    .name { fill: #10243b; font-size: 25px; font-weight: 700; }
+    .role { fill: #304b65; font-size: 20px; }
+    .label { fill: #e3edf7; font-size: 19px; }
+    .wire { fill: none; stroke: #a9c2d8; stroke-width: 2.5; marker-end: url(#arrow); }
+    .two { marker-start: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#a9c2d8"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="560" rx="14" fill="#101b2a"/>
+  <rect class="group" x="20" y="20" width="320" height="520" rx="14"/>
+  <rect class="group" x="660" y="20" width="320" height="520" rx="14"/>
+  <g text-anchor="middle">
+    <text class="heading" x="180" y="68">每台 Quest 頭盔</text>
+    <text class="heading" x="820" y="68">場地電腦</text>
+
+    <rect class="node" x="686" y="96" width="268" height="62" rx="9"/>
+    <text class="name" x="820" y="136">操作頁面</text>
+
+    <rect class="node" x="46" y="220" width="268" height="92" rx="9"/>
+    <text class="name" x="180" y="257">Lobby</text>
+    <text class="role" x="180" y="289">頭盔待機程式</text>
+
+    <rect class="node" x="686" y="220" width="268" height="92" rx="9"/>
+    <text class="name" x="820" y="257">Local Server</text>
+    <text class="role" x="820" y="289">場館後台</text>
+
+    <rect class="game" x="46" y="422" width="268" height="92" rx="9"/>
+    <text class="name" x="180" y="459">Content APK</text>
+    <text class="role" x="180" y="491">頭盔上的 UE 遊戲</text>
+
+    <rect class="game" x="686" y="422" width="268" height="92" rx="9"/>
+    <text class="name" x="820" y="459">Content Server</text>
+    <text class="role" x="820" y="491">UE 遊戲伺服器</text>
+  </g>
+  <path class="wire" d="M820 161 V216"/>
+  <text class="label" x="839" y="195">管理房間</text>
+  <path class="wire" d="M130 315 V418"/>
+  <text class="label" x="148" y="375">啟動 APK</text>
+  <path class="wire two" d="M738 316 V418"/>
+  <text class="label" x="756" y="375">進度與遊戲指令</text>
+
+  <g text-anchor="middle">
+    <path class="wire two" d="M318 250 H682"/>
+    <text class="label" x="500" y="233">待機與遊戲派發</text>
+    <path class="wire two" d="M318 442 H357 Q369 442 369 430 V379 Q369 367 381 367 H619 Q631 367 631 355 V300 Q631 288 643 288 H682"/>
+    <text class="label" x="500" y="350">標定、地圖與玩家位置</text>
+    <path class="wire two" d="M318 490 H682"/>
+    <text class="label" x="500" y="473">UE 多人遊戲同步</text>
+  </g>
+</svg>

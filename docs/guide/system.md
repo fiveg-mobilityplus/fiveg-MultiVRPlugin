@@ -16,26 +16,7 @@
 
 圖中藍色的兩個程式都透過 FreeRoam Studio 的 MultiVR Plugin 連到場館後台。頭盔上的 Content 負責定位與玩家互動，Win64 上的 Content Server 負責 UE 多人遊戲同步，並向後台回報遊戲狀態。
 
-```mermaid
-flowchart LR
-    subgraph HMD["每台 Quest 頭盔"]
-        L["Lobby · 待機程式"]
-        C["Content APK · UE 遊戲"]
-        L -->|啟動 APK| C
-    end
-    subgraph PC["場地電腦"]
-        UI["操作頁面"]
-        LS["Local Server · 場館後台"]
-        GS["Content Server · UE 遊戲伺服器"]
-        UI -->|管理房間| LS
-        GS <-->|進度與遊戲指令| LS
-    end
-    L <-->|待機與遊戲派發| LS
-    C <-->|標定、地圖與玩家位置| LS
-    C <-->|UE 多人遊戲同步| GS
-    classDef vendor fill:#dbeafe,stroke:#2563eb,color:#172554
-    class C,GS vendor
-```
+[![MultiVR 系統架構：左側為 Quest 的 Lobby 與 Content APK，右側為場地電腦的操作頁面、Local Server 與 Content Server。](../images/multivr/system-architecture.svg)](../images/multivr/system-architecture.svg)
 
 **頭盔上的 Content 會連到兩個服務。** 即使服務跑在同一台電腦，也要依用途把位址交給正確的藍圖節點。
 
