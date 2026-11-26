@@ -6,9 +6,10 @@
     .group { fill: #172537; stroke: #455a72; stroke-width: 1.5; }
     .heading { fill: #f4f8fc; font-size: 26px; font-weight: 700; }
     .node { fill: #f3f6fa; stroke: #c6d2df; stroke-width: 2; }
-    .game { fill: #d9edff; stroke: #70b7fa; stroke-width: 2; }
+    .game { fill: #1755b5; stroke: #85baff; stroke-width: 2; }
     .name { fill: #10243b; font-size: 25px; font-weight: 700; }
     .role { fill: #304b65; font-size: 20px; }
+    .on-game { fill: #fff; }
     .label { fill: #e3edf7; font-size: 19px; }
     .wire { fill: none; stroke: #a9c2d8; stroke-width: 2.5; marker-end: url(#arrow); }
     .two { marker-start: url(#arrow); }
@@ -37,12 +38,12 @@
     <text class="role" x="820" y="289">場館後台</text>
 
     <rect class="game" x="46" y="422" width="268" height="92" rx="9"/>
-    <text class="name" x="180" y="459">Content APK</text>
-    <text class="role" x="180" y="491">頭盔上的 UE 遊戲</text>
+    <text class="name on-game" x="180" y="459">Content APK</text>
+    <text class="role on-game" x="180" y="491">頭盔上的 UE 遊戲</text>
 
     <rect class="game" x="686" y="422" width="268" height="92" rx="9"/>
-    <text class="name" x="820" y="459">Content Server</text>
-    <text class="role" x="820" y="491">UE 遊戲伺服器</text>
+    <text class="name on-game" x="820" y="459">Content Server</text>
+    <text class="role on-game" x="820" y="491">UE 遊戲伺服器</text>
   </g>
   <path class="wire" d="M820 161 V216"/>
   <text class="label" x="839" y="195">管理房間</text>
