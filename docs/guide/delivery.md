@@ -6,6 +6,10 @@
 
 ### 打包步驟
 
+左欄是裝在頭盔上的 Android APK，右欄是由場館後台啟動的 Win64 Content Server。各欄由上往下閱讀，編號對應下方操作步驟。兩端打包完成後，依[場地驗收](#場地驗收)一起測試。
+
+[![Android APK 與 Win64 Content Server 的打包流程：從平台設定、選擇建置目標，到安裝與交付。](../images/multivr/packaging-flow.svg)](../images/multivr/packaging-flow.svg)
+
 **頭盔 APK**
 
 1. `Edit → Project Settings → Platforms → Android`：

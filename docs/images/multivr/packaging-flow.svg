@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="626" viewBox="0 0 1000 626" role="img" aria-labelledby="title desc">
+  <title id="title">Android 頭盔 APK 與 Win64 Content Server 打包流程</title>
+  <desc id="desc">左欄由 Android 平台設定開始，打包 APK 並安裝到頭盔；右欄先確認 Server Target 與編輯器建置，再打包 Win64 Server。兩端交付後進行場地驗收。</desc>
+  <style>
+    text { font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif; text-anchor: middle; }
+    .heading { fill: #f4f8fc; font-size: 25px; font-weight: 700; }
+    .name { fill: #e3e8ee; font-size: 23px; font-weight: 700; }
+    .detail { fill: #bcc7d2; font-size: 20px; }
+    .output .name { fill: #10243b; } .output .detail { fill: #304b65; }
+    .group { fill: #172537; stroke: #455a72; stroke-width: 1.5; }
+    .step rect { fill: #202c39; stroke: #81909f; stroke-width: 2; }
+    .output rect { fill: #d9edff; stroke: #ef4444; stroke-width: 3; }
+    .wire { fill: none; stroke: #a9c2d8; stroke-width: 2.5; marker-end: url(#arrow); }
+  </style>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#a9c2d8"/></marker></defs>
+  <rect width="1000" height="626" rx="14" fill="#101b2a"/>
+  <rect class="group" x="20" y="20" width="466" height="586" rx="12"/>
+  <text class="heading" x="253" y="62">頭盔端 · Android</text>
+  <g class="step">
+    <rect x="36" y="84" width="434" height="84" rx="10"/>
+    <text class="name" x="253" y="110">① 設定 Android 平台</text>
+    <text class="detail" x="253" y="135">接受 SDK 授權，填寫 package name</text>
+    <text class="detail" x="253" y="158">勾選 Meta Quest，僅建置 arm64</text>
+  </g>
+  <path class="wire" d="M253 171V186"/>
+  <g class="step">
+    <rect x="36" y="190" width="434" height="84" rx="10"/>
+    <text class="name" x="253" y="226">② 指定開發工具路徑</text>
+    <text class="detail" x="253" y="253">Android SDK、對應版本的 NDK、JDK 17</text>
+  </g>
+  <path class="wire" d="M253 277V292"/>
+  <g class="step">
+    <rect x="36" y="296" width="434" height="84" rx="10"/>
+    <text class="name" x="253" y="332">③ 套用 Meta XR 建議設定（選用）</text>
+    <text class="detail" x="253" y="359">Project Setup Tool</text>
+  </g>
+  <path class="wire" d="M253 383V398"/>
+  <g class="step">
+    <rect x="36" y="402" width="434" height="84" rx="10"/>
+    <text class="name" x="253" y="438">④ 打包並安裝到頭盔</text>
+    <text class="detail" x="253" y="465">Platforms → Android → Package Project</text>
+  </g>
+  <path class="wire" d="M253 489V504"/>
+  <g class="step output">
+    <rect x="36" y="508" width="434" height="84" rx="10"/>
+    <text class="name" x="253" y="544">Content APK</text>
+    <text class="detail" x="253" y="571">交付 APK 與 Android package name</text>
+  </g>
+  <rect class="group" x="514" y="20" width="466" height="586" rx="12"/>
+  <text class="heading" x="747" y="62">場地電腦 · Win64</text>
+  <g class="step">
+    <rect x="530" y="84" width="434" height="84" rx="10"/>
+    <text class="name" x="747" y="110">① 確認 Server Target</text>
+    <text class="detail" x="747" y="135">專案已有 Server.Target.cs</text>
+    <text class="detail" x="747" y="158">且已完成編輯器建置</text>
+  </g>
+  <path class="wire" d="M747 171V186"/>
+  <g class="step">
+    <rect x="530" y="190" width="434" height="84" rx="10"/>
+    <text class="name" x="747" y="216">② 選擇伺服器建置目標</text>
+    <text class="detail" x="747" y="241">Platforms → Windows → Build Target</text>
+    <text class="detail" x="747" y="264">選擇專案的 Server Target</text>
+  </g>
+  <path class="wire" d="M747 277V292"/>
+  <g class="step">
+    <rect x="530" y="296" width="434" height="84" rx="10"/>
+    <text class="name" x="747" y="332">接著打包 Windows 伺服器</text>
+    <text class="detail" x="747" y="359">Package Project → 選擇輸出目錄</text>
+  </g>
+  <path class="wire" d="M747 383V398"/>
+  <g class="step">
+    <rect x="530" y="402" width="434" height="84" rx="10"/>
+    <text class="name" x="747" y="438">③ 確認伺服器執行檔</text>
+    <text class="detail" x="747" y="465">在打包目錄中找到專案的 Server.exe</text>
+  </g>
+  <path class="wire" d="M747 489V504"/>
+  <g class="step output">
+    <rect x="530" y="508" width="434" height="84" rx="10"/>
+    <text class="name" x="747" y="544">Content Server</text>
+    <text class="detail" x="747" y="571">交付完整打包目錄及伺服器啟動地圖</text>
+  </g>
+</svg>
